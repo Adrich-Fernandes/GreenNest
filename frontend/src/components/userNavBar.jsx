@@ -4,7 +4,7 @@ import { ShoppingCart, Leaf, Menu, X } from "lucide-react";
 
 const navLinks = [
   { label: "Home", to: "/" },
-  { label: "Plants & Products", to: "/plants" },
+  { label: "Plants & Products", to: "/products" },
   { label: "Gardeners", to: "/gardeners" },
 ];
 
