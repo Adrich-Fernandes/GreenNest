@@ -1,11 +1,13 @@
 import React from 'react'
-import UserNavBar from './components/userNavBar'
+import Home from './pages/home'
+import { Routes, Route } from 'react-router-dom'
 
 const App = () => {
   return (
     <div>
-      <UserNavBar />
-      <h1 className="text-3xl font-bold underline">App</h1>
+      <Routes>
+        <Route path="/" element={<Home />} />
+      </Routes>
     </div>
   )
 }
