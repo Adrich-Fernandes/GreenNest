@@ -1,4 +1,4 @@
-import { Leaf, Bell, ArrowRight } from "lucide-react";
+import { Leaf, Bell, ArrowRight,Flower2, Sprout, Droplets, ShoppingBag, Shovel} from "lucide-react";
 import UserNavBar from "../components/userNavBar";
 
 export default function HeroSection() {
@@ -93,6 +93,68 @@ export default function HeroSection() {
 
       </div>
     </section>
+    <ShopByCategory />
     </>
   );
 }
+
+
+
+
+
+
+
+
+// shop by category function
+const categories = [
+  { label: "Indoor Plants", icon: ShoppingBag, bg: "bg-green-50", iconColor: "text-green-500" },
+  { label: "Outdoor Plants", icon: Leaf, bg: "bg-green-50", iconColor: "text-green-400" },
+  { label: "Flowering", icon: Flower2, bg: "bg-pink-50", iconColor: "text-pink-500" },
+  { label: "Seeds", icon: Sprout, bg: "bg-yellow-50", iconColor: "text-yellow-500" },
+  { label: "Pots & Planters", icon: Droplets, bg: "bg-blue-50", iconColor: "text-blue-400" },
+  { label: "Gardening Tools", icon: Shovel, bg: "bg-orange-50", iconColor: "text-orange-400" },
+];
+
+function ShopByCategory() {
+  return (
+    <section className="w-full py-16 px-6 md:px-16 bg-white">
+      <div className="max-w-7xl mx-auto">
+
+        {/* Header */}
+        <div className="flex flex-col items-center gap-2 mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight text-center">
+            Shop by Category
+          </h2>
+          <p className="text-sm md:text-base text-gray-400 text-center">
+            Find exactly what your garden needs
+          </p>
+        </div>
+
+        {/* Cards Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          {categories.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <div
+                key={cat.label}
+                className="group flex flex-col items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-green-100 transition-all duration-200 ease-in-out"
+              >
+                <div className={`w-14 h-14 ${cat.bg} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+                  <Icon className={`w-7 h-7 ${cat.iconColor}`} strokeWidth={1.75} />
+                </div>
+                <span className="text-sm font-medium text-gray-700 text-center leading-tight">
+                  {cat.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
+
+
+
