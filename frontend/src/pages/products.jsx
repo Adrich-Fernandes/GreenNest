@@ -1,21 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, ShoppingCart, Star, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
 
 const allProducts = [
-  { id: 1, name: "Gardening Tool Kit", nursery: "Green Valley Nursery", rating: 4.1, price: 599, category: "Tools", categoryColor: "bg-green-100 text-green-700", image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80" },
-  { id: 2, name: "Bougainvillea", nursery: "Herb Haven", rating: 4.5, price: 275, category: "Flowering", categoryColor: "bg-green-100 text-green-700", image: "https://images.unsplash.com/photo-1596547609652-9cf5d8d76921?w=400&q=80" },
-  { id: 3, name: "Aloe Vera", nursery: "Nature's Nest", rating: 4.7, price: 179, category: "Indoor", categoryColor: "bg-green-100 text-green-700", image: "https://images.unsplash.com/photo-1567748157439-651aca2ff064?w=400&q=80" },
-  { id: 4, name: "Jasmine Plant", nursery: "Bloom Garden", rating: 4.6, price: 320, category: "Flowering", categoryColor: "bg-green-100 text-green-700", image: "https://images.unsplash.com/photo-1444021465936-c6ca81d39b84?w=400&q=80" },
-  { id: 5, name: "Cactus Mix", nursery: "Desert Blooms", rating: 4.3, price: 149, category: "Indoor", categoryColor: "bg-green-100 text-green-700", image: "https://images.unsplash.com/photo-1509423350716-97f9360b4e09?w=400&q=80" },
-  { id: 6, name: "Sunflower Seeds", nursery: "Seed World", rating: 4.8, price: 89, category: "Seeds", categoryColor: "bg-green-100 text-green-700", image: "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=400&q=80" },
-  { id: 7, name: "Ceramic Pot", nursery: "Pot Studio", rating: 4.4, price: 450, category: "Pots & Planters", categoryColor: "bg-green-100 text-green-700", image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=400&q=80" },
-  { id: 8, name: "Ficus Tree", nursery: "Green Valley Nursery", rating: 4.2, price: 899, category: "Outdoor", categoryColor: "bg-green-100 text-green-700", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" },
+  { id: 1, name: "Gardening Tool Kit", nursery: "Green Valley Nursery", rating: 4.1, price: 599, category: "Tools", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80" },
+  { id: 2, name: "Bougainvillea", nursery: "Herb Haven", rating: 4.5, price: 275, category: "Flowering", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1596547609652-9cf5d8d76921?w=400&q=80" },
+  { id: 3, name: "Aloe Vera", nursery: "Nature's Nest", rating: 4.7, price: 179, category: "Indoor", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1567748157439-651aca2ff064?w=400&q=80" },
+  { id: 4, name: "Jasmine Plant", nursery: "Bloom Garden", rating: 4.6, price: 320, category: "Flowering", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1444021465936-c6ca81d39b84?w=400&q=80" },
+  { id: 5, name: "Cactus Mix", nursery: "Desert Blooms", rating: 4.3, price: 149, category: "Indoor", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1509423350716-97f9360b4e09?w=400&q=80" },
+  { id: 6, name: "Sunflower Seeds", nursery: "Seed World", rating: 4.8, price: 89, category: "Seeds", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=400&q=80" },
+  { id: 7, name: "Ceramic Pot", nursery: "Pot Studio", rating: 4.4, price: 450, category: "Pots & Planters", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=400&q=80" },
+  { id: 8, name: "Ficus Tree", nursery: "Green Valley Nursery", rating: 4.2, price: 899, category: "Outdoor", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" },
 ];
 
 const categories = ["All Types", "Indoor", "Outdoor", "Flowering", "Seeds", "Pots & Planters", "Tools"];
 const sortOptions = ["Newest", "Price: Low to High", "Price: High to Low", "Top Rated"];
+
+function useInView(threshold = 0.1) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setInView(true); },
+      { threshold }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [threshold]);
+  return [ref, inView];
+}
 
 export default function Products() {
   const [search, setSearch] = useState("");
@@ -23,6 +37,13 @@ export default function Products() {
   const [selectedSort, setSelectedSort] = useState("Newest");
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [cardsRef, cardsInView] = useInView(0.05);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   const filtered = allProducts
     .filter((p) => {
@@ -42,21 +63,20 @@ export default function Products() {
   return (
     <>
       <UserNavBar />
-      <section className="w-full min-h-screen bg-[#f5f5f0] px-6 md:px-16 py-12">
+      <section className="w-full min-h-screen bg-[#f7f9f6] px-6 md:px-16 py-12">
         <div className="max-w-7xl mx-auto flex flex-col gap-8">
 
-          {/* Header */}
-          <div>
+          <div className={`transition-all duration-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">Plants & Products</h1>
             <p className="text-gray-400 text-sm mt-1">Browse our curated collection of plants and gardening essentials</p>
           </div>
 
-          {/* TOP DIV — Search + Filters */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-
-            {/* Search Bar */}
-            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 flex-1 shadow-sm">
-              <Search className="w-4 h-4 text-gray-400 shrink-0" />
+          <div
+            className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 transition-all duration-700 relative z-30 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+            style={{ transitionDelay: "150ms" }}
+          >
+            <div className="flex items-center gap-3 bg-white border border-[#c8d9c0] rounded-xl px-4 py-3 flex-1 shadow-sm focus-within:border-[#3d6b45] focus-within:ring-2 focus-within:ring-[#f0f4ee] transition-all duration-200">
+              <Search className="w-4 h-4 text-[#3d6b45] shrink-0" />
               <input
                 type="text"
                 placeholder="Search plants, tools, seeds..."
@@ -66,26 +86,25 @@ export default function Products() {
               />
             </div>
 
-            {/* Category Filter */}
-            <div className="relative">
+            <div className="relative z-30">
               <button
                 onClick={() => { setCategoryOpen(!categoryOpen); setSortOpen(false); }}
-                className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 font-medium shadow-sm hover:border-gray-300 transition-colors w-full sm:w-44 justify-between"
+                className="flex items-center gap-2 bg-white border border-[#c8d9c0] rounded-xl px-4 py-3 text-sm text-gray-700 font-medium shadow-sm hover:border-[#3d6b45] transition-colors w-full sm:w-44 justify-between"
               >
                 {selectedCategory}
-                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${categoryOpen ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-4 h-4 text-[#3d6b45] transition-transform duration-200 ${categoryOpen ? "rotate-180" : ""}`} />
               </button>
               {categoryOpen && (
-                <div className="absolute top-full mt-2 left-0 bg-white border border-gray-100 rounded-xl shadow-lg z-20 w-44 py-1 overflow-hidden">
+                <div className="absolute top-full mt-2 left-0 bg-white border border-[#c8d9c0] rounded-xl shadow-lg z-50 w-44 py-1 overflow-hidden">
                   {categories.map((cat) => (
                     <button
                       key={cat}
                       onClick={() => { setSelectedCategory(cat); setCategoryOpen(false); }}
-                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between transition-colors"
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-[#f0f4ee] hover:text-[#3d6b45] flex items-center justify-between transition-colors"
                     >
                       {cat}
                       {selectedCategory === cat && (
-                        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <svg className="w-4 h-4 text-[#3d6b45]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       )}
@@ -95,26 +114,25 @@ export default function Products() {
               )}
             </div>
 
-            {/* Sort Filter */}
-            <div className="relative">
+            <div className="relative z-30">
               <button
                 onClick={() => { setSortOpen(!sortOpen); setCategoryOpen(false); }}
-                className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 font-medium shadow-sm hover:border-gray-300 transition-colors w-full sm:w-48 justify-between"
+                className="flex items-center gap-2 bg-white border border-[#c8d9c0] rounded-xl px-4 py-3 text-sm text-gray-700 font-medium shadow-sm hover:border-[#3d6b45] transition-colors w-full sm:w-48 justify-between"
               >
                 {selectedSort}
-                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${sortOpen ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-4 h-4 text-[#3d6b45] transition-transform duration-200 ${sortOpen ? "rotate-180" : ""}`} />
               </button>
               {sortOpen && (
-                <div className="absolute top-full mt-2 left-0 bg-white border border-gray-100 rounded-xl shadow-lg z-20 w-48 py-1 overflow-hidden">
+                <div className="absolute top-full mt-2 left-0 bg-white border border-[#c8d9c0] rounded-xl shadow-lg z-50 w-48 py-1 overflow-hidden">
                   {sortOptions.map((opt) => (
                     <button
                       key={opt}
                       onClick={() => { setSelectedSort(opt); setSortOpen(false); }}
-                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between transition-colors"
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-[#f0f4ee] hover:text-[#3d6b45] flex items-center justify-between transition-colors"
                     >
                       {opt}
                       {selectedSort === opt && (
-                        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <svg className="w-4 h-4 text-[#3d6b45]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       )}
@@ -125,20 +143,17 @@ export default function Products() {
             </div>
           </div>
 
-          {/* BOTTOM DIV — Cards */}
           {filtered.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-              {filtered.map((product) => (
+            <div ref={cardsRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 relative z-0">
+              {filtered.map((product, i) => (
                 <Link
                   to={`/plants/${product.id}`}
                   key={product.id}
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer group"
+                  className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer group ${cardsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                  style={{ transitionDelay: `${i * 60}ms` }}
                 >
-                  {/* Mobile: horizontal layout — Desktop: vertical layout */}
                   <div className="flex flex-row sm:flex-col">
-
-                    {/* Image */}
-                    <div className="relative w-36 h-36 shrink-0 sm:w-full sm:h-52 bg-green-50 overflow-hidden sm:rounded-none rounded-l-2xl">
+                    <div className="relative w-36 h-36 shrink-0 sm:w-full sm:h-52 bg-[#f0f4ee] overflow-hidden sm:rounded-none rounded-l-2xl">
                       <img
                         src={product.image}
                         alt={product.name}
@@ -148,34 +163,26 @@ export default function Products() {
                         {product.category}
                       </span>
                     </div>
-
-                    {/* Info */}
                     <div className="flex flex-col justify-between flex-1 px-4 py-4 sm:pt-4 sm:pb-5">
                       <div className="flex flex-col gap-1">
-                        <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-tight">
-                          {product.name}
-                        </h3>
+                        <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-tight">{product.name}</h3>
                         <p className="text-xs text-gray-400">{product.nursery}</p>
                         <div className="flex items-center gap-1 mt-0.5">
-                          <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                           <span className="text-xs font-medium text-gray-600">{product.rating}</span>
                         </div>
                       </div>
-
                       <div className="flex items-center justify-between mt-2 sm:mt-3">
-                        <span className="text-base sm:text-lg font-bold text-gray-900">
-                          ₹{product.price}
-                        </span>
+                        <span className="text-base sm:text-lg font-bold text-gray-900">₹{product.price}</span>
                         <button
                           onClick={(e) => e.preventDefault()}
-                          className="flex items-center gap-1 sm:gap-1.5 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95"
+                          className="flex items-center gap-1 sm:gap-1.5 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95"
                         >
                           <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           Add
                         </button>
                       </div>
                     </div>
-
                   </div>
                 </Link>
               ))}

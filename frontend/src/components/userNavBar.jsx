@@ -15,13 +15,13 @@ export default function UserNavBar() {
 
   return (
     <>
-      <nav className="bg-white/70 backdrop-blur-md border-b border-gray-100/60 shadow-sm sticky top-0 z-50">
+      <nav className="bg-white/80 backdrop-blur-md border-b border-[#c8d9c0]/60 shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
 
           {/* Left: Hamburger (mobile) + Logo */}
           <div className="flex items-center gap-3">
             <button
-              className="md:hidden p-2 text-gray-500 hover:text-gray-800 rounded-lg hover:bg-gray-50 transition-colors"
+              className="md:hidden p-2 text-[#3d6b45] hover:text-[#345c3c] rounded-lg hover:bg-[#f0f4ee] transition-colors"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
             >
@@ -29,7 +29,7 @@ export default function UserNavBar() {
             </button>
 
             <Link to="/" className="flex items-center gap-2 shrink-0">
-              <div className="w-9 h-9 bg-green-500 rounded-xl flex items-center justify-center">
+              <div className="w-9 h-9 bg-[#3d6b45] rounded-xl flex items-center justify-center">
                 <Leaf className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
               <span className="text-gray-900 font-semibold text-lg tracking-tight">
@@ -48,8 +48,8 @@ export default function UserNavBar() {
                     to={link.to}
                     className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 ${
                       isActive
-                        ? "bg-green-50 text-green-600"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                        ? "bg-[#f0f4ee] text-[#3d6b45]"
+                        : "text-gray-600 hover:text-[#3d6b45] hover:bg-[#f0f4ee]"
                     }`}
                   >
                     {link.label}
@@ -61,15 +61,15 @@ export default function UserNavBar() {
 
           {/* Right: Cart + Login */}
           <div className="flex items-center gap-2 shrink-0">
-            <button className="relative p-2 text-gray-500 hover:text-gray-800 rounded-lg hover:bg-gray-50 transition-colors">
+            <button className="relative p-2 text-gray-500 hover:text-[#3d6b45] rounded-lg hover:bg-[#f0f4ee] transition-colors">
               <ShoppingCart className="w-5 h-5" strokeWidth={1.75} />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#3d6b45] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
             </button>
-            <button className="px-4 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-medium transition-colors duration-150">
+            <button className="px-4 py-1.5 rounded-lg bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-medium transition-colors duration-150">
               Login
             </button>
           </div>
@@ -91,16 +91,16 @@ export default function UserNavBar() {
         }`}
       >
         {/* Drawer Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8d9c0]">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-500 rounded-xl flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#3d6b45] rounded-xl flex items-center justify-center">
               <Leaf className="w-4 h-4 text-white" strokeWidth={2.5} />
             </div>
             <span className="text-gray-900 font-semibold text-base tracking-tight">GreenNest</span>
           </div>
           <button
             onClick={() => setMobileOpen(false)}
-            className="p-2 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="p-2 text-gray-400 hover:text-[#3d6b45] rounded-lg hover:bg-[#f0f4ee] transition-colors"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -118,8 +118,8 @@ export default function UserNavBar() {
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-green-50 text-green-600"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-[#f0f4ee] text-[#3d6b45]"
+                    : "text-gray-600 hover:bg-[#f0f4ee] hover:text-[#3d6b45]"
                 }`}
               >
                 {link.label}
@@ -129,8 +129,8 @@ export default function UserNavBar() {
         </nav>
 
         {/* Drawer Footer */}
-        <div className="px-4 py-5 border-t border-gray-100">
-          <button className="w-full py-3 rounded-xl bg-green-500 hover:bg-green-600 text-white text-sm font-semibold transition-colors duration-150">
+        <div className="px-4 py-5 border-t border-[#c8d9c0]">
+          <button className="w-full py-3 rounded-xl bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold transition-colors duration-150">
             Login
           </button>
         </div>
