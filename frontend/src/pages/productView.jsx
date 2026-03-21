@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Star, ShoppingCart, Truck, ShieldCheck, BookOpen, Leaf } from "lucide-react";
 import UserNavBar from "../components/userNavBar";
+import Footer from "../components/footer";
 
 const allProducts = [
   {
@@ -248,6 +249,7 @@ export default function ProductView() {
           </div>
         </div>
       </section>
+      <Footer />
     </>
   );
 }

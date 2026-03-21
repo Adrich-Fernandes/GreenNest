@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, ShoppingCart, Star, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
+import Footer from "../components/footer";
 
 const allProducts = [
   { id: 1, name: "Gardening Tool Kit", nursery: "Green Valley Nursery", rating: 4.1, price: 599, category: "Tools", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80" },
@@ -196,6 +197,7 @@ export default function Products() {
 
         </div>
       </section>
+      <Footer />
     </>
   );
 }

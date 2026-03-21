@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, Star, MapPin, Clock, ChevronDown, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
+import Footer from "../components/footer";
 
 const allGardeners = [
   { id: 1, name: "Rajesh Kumar", rating: 4.8, location: "Mumbai", experience: 8, bio: "Experienced home gardener with 8 years of expertise in landscaping and plant care. Specializing in organic...", services: ["Home Gardening", "Lawn Maintenance", "Plant Care & Pruning"], price: 500 },
@@ -169,6 +170,7 @@ export default function Gardeners() {
 
         </div>
       </section>
+      <Footer />
     </>
   );
 }
