@@ -1,5 +1,6 @@
 import { LayoutDashboard, Package, Users, ShoppingCart, Leaf, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
 const sidebarLinks = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
@@ -70,15 +71,28 @@ export default function Nav({ sidebarOpen, setSidebarOpen }) {
 
         {/* Admin Profile */}
         <div className="px-4 py-4 border-t border-[#2a4d2e]">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#3d6b45] rounded-full flex items-center justify-center text-white text-xs font-bold">
-              A
+          <SignedIn>
+            <div className="flex items-center gap-3">
+              <UserButton 
+                showName 
+                appearance={{
+                  elements: {
+                    userButtonBox: "flex-row-reverse w-full justify-between",
+                    userButtonOuterIdentifier: "text-white text-xs font-semibold",
+                    userButtonAvatarBox: "w-8 h-8"
+                  }
+                }}
+              />
             </div>
-            <div>
-              <p className="text-white text-xs font-semibold">Admin User</p>
-              <p className="text-[#7aa882] text-xs">admin@greennest.com</p>
-            </div>
-          </div>
+          </SignedIn>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-[#a8c4a0] hover:bg-[#2a4d2e] hover:text-white w-full text-left transition-all duration-150">
+                <Users className="w-4 h-4 shrink-0" />
+                Admin Login
+              </button>
+            </SignInButton>
+          </SignedOut>
         </div>
       </aside>
     </>

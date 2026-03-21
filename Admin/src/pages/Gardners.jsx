@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { Menu, Bell, Search, Plus, Eye, Pencil, Trash2 } from "lucide-react";
-import Nav from "../components/AdminNavBar";
+import { Plus, Eye, Pencil, Trash2 } from "lucide-react";
+import AdminLayout from "../components/AdminLayout";
 
 const gardeners = [
   { id: 1, name: "Rajesh Kumar", location: "Mumbai", services: "Home Gardening, Lawn", rating: 4.8, status: "Active" },
@@ -16,92 +15,62 @@ const statusStyles = {
 };
 
 export default function Gardners() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
-    <div className="flex h-screen bg-[#f7f9f6] overflow-hidden">
-      <Nav sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="bg-white border-b border-[#e8ede6] px-6 h-16 flex items-center justify-between shrink-0 shadow-sm">
-          <div className="flex items-center gap-4">
-            <button
-              className="md:hidden p-2 text-gray-500 hover:text-[#3d6b45] rounded-lg hover:bg-[#f0f4ee] transition-colors"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <div className="hidden sm:flex items-center gap-2 bg-[#f7f9f6] border border-[#e8ede6] rounded-xl px-3 py-2 w-64">
-              <Search className="w-4 h-4 text-gray-400 shrink-0" />
-              <input placeholder="Search..." className="text-sm text-gray-600 bg-transparent outline-none placeholder-gray-400 flex-1" />
-            </div>
+    <AdminLayout>
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Gardeners</h1>
+            <p className="text-sm text-gray-400 mt-1">Manage verified gardening professionals</p>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="relative p-2 text-gray-400 hover:text-[#3d6b45] rounded-lg hover:bg-[#f0f4ee] transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-[#3d6b45] rounded-full" />
-            </button>
-            <div className="w-8 h-8 bg-[#3d6b45] rounded-full flex items-center justify-center text-white text-xs font-bold">A</div>
+          <button className="flex items-center gap-2 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors">
+            <Plus className="w-4 h-4" /> Add Gardener
+          </button>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-[#e8ede6]">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-gray-400 border-b border-[#f0f4ee]">
+                  <th className="text-left px-6 py-3 font-medium">Name</th>
+                  <th className="text-left px-6 py-3 font-medium">Location</th>
+                  <th className="text-left px-6 py-3 font-medium">Services</th>
+                  <th className="text-left px-6 py-3 font-medium">Rating</th>
+                  <th className="text-left px-6 py-3 font-medium">Status</th>
+                  <th className="text-left px-6 py-3 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gardeners.map((g, i) => (
+                  <tr key={g.id} className={`border-b border-[#f0f4ee] hover:bg-[#fafcfa] transition-colors ${i === gardeners.length - 1 ? "border-0" : ""}`}>
+                    <td className="px-6 py-4 font-semibold text-gray-800">{g.name}</td>
+                    <td className="px-6 py-4 text-gray-500">{g.location}</td>
+                    <td className="px-6 py-4 text-gray-500 max-w-[180px] truncate">{g.services}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1">
+                        <span className="text-amber-500">★</span>
+                        <span className="font-semibold text-gray-700">{g.rating}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusStyles[g.status]}`}>
+                        {g.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Eye className="w-4 h-4" /></button>
+                        <button className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Pencil className="w-4 h-4" /></button>
+                        <button className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </header>
-
-        <main className="flex-1 overflow-y-auto px-6 py-8">
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Gardeners</h1>
-                <p className="text-sm text-gray-400 mt-1">Manage verified gardening professionals</p>
-              </div>
-              <button className="flex items-center gap-2 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors">
-                <Plus className="w-4 h-4" /> Add Gardener
-              </button>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm border border-[#e8ede6]">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-xs text-gray-400 border-b border-[#f0f4ee]">
-                      <th className="text-left px-6 py-3 font-medium">Name</th>
-                      <th className="text-left px-6 py-3 font-medium">Location</th>
-                      <th className="text-left px-6 py-3 font-medium">Services</th>
-                      <th className="text-left px-6 py-3 font-medium">Rating</th>
-                      <th className="text-left px-6 py-3 font-medium">Status</th>
-                      <th className="text-left px-6 py-3 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {gardeners.map((g, i) => (
-                      <tr key={g.id} className={`border-b border-[#f0f4ee] hover:bg-[#fafcfa] transition-colors ${i === gardeners.length - 1 ? "border-0" : ""}`}>
-                        <td className="px-6 py-4 font-semibold text-gray-800">{g.name}</td>
-                        <td className="px-6 py-4 text-gray-500">{g.location}</td>
-                        <td className="px-6 py-4 text-gray-500 max-w-[180px] truncate">{g.services}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-1">
-                            <span className="text-amber-500">★</span>
-                            <span className="font-semibold text-gray-700">{g.rating}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusStyles[g.status]}`}>
-                            {g.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <button className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Eye className="w-4 h-4" /></button>
-                            <button className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Pencil className="w-4 h-4" /></button>
-                            <button className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </main>
+        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 }

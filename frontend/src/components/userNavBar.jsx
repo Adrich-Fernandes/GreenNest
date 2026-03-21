@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ShoppingCart, Leaf, Menu, X } from "lucide-react";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -69,9 +70,17 @@ export default function UserNavBar() {
                 </span>
               )}
             </button>
-            <button className="px-4 py-1.5 rounded-lg bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-medium transition-colors duration-150">
-              Login
-            </button>
+            
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className="px-4 py-1.5 rounded-lg bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-medium transition-colors duration-150">
+                  Login
+                </button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton appearance={{ elements: { userButtonAvatarBox: "w-9 h-9" } }} />
+            </SignedIn>
           </div>
         </div>
       </nav>
@@ -130,9 +139,19 @@ export default function UserNavBar() {
 
         {/* Drawer Footer */}
         <div className="px-4 py-5 border-t border-[#c8d9c0]">
-          <button className="w-full py-3 rounded-xl bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold transition-colors duration-150">
-            Login
-          </button>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="w-full py-3 rounded-xl bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold transition-colors duration-150">
+                Login
+              </button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <div className="flex items-center justify-between px-4 py-2 border border-[#c8d9c0]/50 rounded-xl bg-[#f0f4ee]/30">
+              <span className="text-sm font-medium text-gray-700">Account</span>
+              <UserButton showName />
+            </div>
+          </SignedIn>
         </div>
       </div>
     </>
