@@ -4,6 +4,7 @@ import Dashboard from './pages/dashboard';
 import Products from './pages/Products';
 import Gardners from './pages/Gardners';
 import Orders from './pages/Orders';
+import GardnerAppointments from './Gardner/dashboard';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
       <Route path="/products" element={<Products />} />
       <Route path="/gardeners" element={<Gardners />} />
       <Route path="/orders" element={<Orders />} />
+      <Route path="/gardener/dashboard" element={<GardnerAppointments />} />
     </Routes>
   );
 }

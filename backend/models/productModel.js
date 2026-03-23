@@ -1,0 +1,76 @@
+const mongoose = require("mongoose");
+
+const productSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "Product name is required"],
+      trim: true,
+    },
+    nursery: {
+      type: String,
+      trim: true,
+      default: "GreenNest",
+    },
+    price: {
+      type: Number,
+      required: [true, "Price is required"],
+      min: [0, "Price cannot be negative"],
+    },
+    category: {
+      type: String,
+      required: [true, "Category is required"],
+      enum: ["Indoor", "Outdoor", "Flowering", "Seeds", "Pots & Planters", "Tools"],
+    },
+    stock: {
+      type: Number,
+      default: 0,
+      min: [0, "Stock cannot be negative"],
+    },
+    status: {
+      type: String,
+      enum: ["Active", "Out of Stock", "Low Stock"],
+      default: "Active",
+    },
+    rating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    careInstructions: {
+      type: String,
+      trim: true,
+    },
+    image: {
+      type: String,
+      default: "",
+    },
+    inStock: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  { timestamps: true }
+);
+
+// Auto update status based on stock before saving
+productSchema.pre("save", function (next) {
+  if (this.stock === 0) {
+    this.status = "Out of Stock";
+    this.inStock = false;
+  } else if (this.stock <= 10) {
+    this.status = "Low Stock";
+    this.inStock = true;
+  } else {
+    this.status = "Active";
+    this.inStock = true;
+  }
+  next();
+});
+
+module.exports = mongoose.model("Product", productSchema);
