@@ -46,9 +46,9 @@ const productSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    image: {
-      type: String,
-      default: "",
+    images: {
+      type: [String],
+      default: [],
     },
     inStock: {
       type: Boolean,
@@ -57,20 +57,5 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-// Auto update status based on stock before saving
-productSchema.pre("save", function (next) {
-  if (this.stock === 0) {
-    this.status = "Out of Stock";
-    this.inStock = false;
-  } else if (this.stock <= 10) {
-    this.status = "Low Stock";
-    this.inStock = true;
-  } else {
-    this.status = "Active";
-    this.inStock = true;
-  }
-  next();
-});
 
 module.exports = mongoose.model("Product", productSchema);

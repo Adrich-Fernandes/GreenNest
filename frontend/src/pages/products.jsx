@@ -4,16 +4,7 @@ import { Link } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
 
-const allProducts = [
-  { id: 1, name: "Gardening Tool Kit", nursery: "Green Valley Nursery", rating: 4.1, price: 599, category: "Tools", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80" },
-  { id: 2, name: "Bougainvillea", nursery: "Herb Haven", rating: 4.5, price: 275, category: "Flowering", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1596547609652-9cf5d8d76921?w=400&q=80" },
-  { id: 3, name: "Aloe Vera", nursery: "Nature's Nest", rating: 4.7, price: 179, category: "Indoor", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1567748157439-651aca2ff064?w=400&q=80" },
-  { id: 4, name: "Jasmine Plant", nursery: "Bloom Garden", rating: 4.6, price: 320, category: "Flowering", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1444021465936-c6ca81d39b84?w=400&q=80" },
-  { id: 5, name: "Cactus Mix", nursery: "Desert Blooms", rating: 4.3, price: 149, category: "Indoor", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1509423350716-97f9360b4e09?w=400&q=80" },
-  { id: 6, name: "Sunflower Seeds", nursery: "Seed World", rating: 4.8, price: 89, category: "Seeds", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=400&q=80" },
-  { id: 7, name: "Ceramic Pot", nursery: "Pot Studio", rating: 4.4, price: 450, category: "Pots & Planters", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=400&q=80" },
-  { id: 8, name: "Ficus Tree", nursery: "Green Valley Nursery", rating: 4.2, price: 899, category: "Outdoor", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" },
-];
+const API_BASE = "http://localhost:5000/api/product";
 
 const categories = ["All Types", "Indoor", "Outdoor", "Flowering", "Seeds", "Pots & Planters", "Tools"];
 const sortOptions = ["Newest", "Price: Low to High", "Price: High to Low", "Top Rated"];
@@ -33,6 +24,8 @@ function useInView(threshold = 0.1) {
 }
 
 export default function Products() {
+  const [allProducts, setAllProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Types");
   const [selectedSort, setSelectedSort] = useState("Newest");
@@ -46,19 +39,37 @@ export default function Products() {
     return () => clearTimeout(t);
   }, []);
 
+  // Fetch products from backend
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/allProducts`);
+        const data = await res.json();
+        if (data.success) setAllProducts(data.data);
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   const filtered = allProducts
     .filter((p) => {
       const matchesSearch =
         p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.nursery.toLowerCase().includes(search.toLowerCase());
+        (p.nursery || "").toLowerCase().includes(search.toLowerCase());
       const matchesCategory = selectedCategory === "All Types" || p.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+      // Only show in-stock or active products to users
+      return matchesSearch && matchesCategory && p.status !== "Out of Stock";
     })
     .sort((a, b) => {
       if (selectedSort === "Price: Low to High") return a.price - b.price;
       if (selectedSort === "Price: High to Low") return b.price - a.price;
       if (selectedSort === "Top Rated") return b.rating - a.rating;
-      return b.id - a.id;
+      return new Date(b.createdAt) - new Date(a.createdAt); // Newest
     });
 
   return (
@@ -144,33 +155,35 @@ export default function Products() {
             </div>
           </div>
 
-          {filtered.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-24 text-gray-400 text-sm">Loading products...</div>
+          ) : filtered.length > 0 ? (
             <div ref={cardsRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 relative z-0">
               {filtered.map((product, i) => (
                 <Link
-                  to={`/plants/${product.id}`}
-                  key={product.id}
+                  to={`/plants/${product._id}`}
+                  key={product._id}
                   className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer group ${cardsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
                   style={{ transitionDelay: `${i * 60}ms` }}
                 >
                   <div className="flex flex-row sm:flex-col">
                     <div className="relative w-36 h-36 shrink-0 sm:w-full sm:h-52 bg-[#f0f4ee] overflow-hidden sm:rounded-none rounded-l-2xl">
                       <img
-                        src={product.image}
+                        src={product.image || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80"}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className={`absolute top-2 left-2 ${product.categoryColor} text-xs font-semibold px-2 py-0.5 rounded-full`}>
+                      <span className="absolute top-2 left-2 bg-[#f0f4ee] text-[#3d6b45] text-xs font-semibold px-2 py-0.5 rounded-full">
                         {product.category}
                       </span>
                     </div>
                     <div className="flex flex-col justify-between flex-1 px-4 py-4 sm:pt-4 sm:pb-5">
                       <div className="flex flex-col gap-1">
                         <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-tight">{product.name}</h3>
-                        <p className="text-xs text-gray-400">{product.nursery}</p>
+                        <p className="text-xs text-gray-400">{product.nursery || "GreenNest"}</p>
                         <div className="flex items-center gap-1 mt-0.5">
                           <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                          <span className="text-xs font-medium text-gray-600">{product.rating}</span>
+                          <span className="text-xs font-medium text-gray-600">{product.rating || "New"}</span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between mt-2 sm:mt-3">

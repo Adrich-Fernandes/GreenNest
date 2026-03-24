@@ -1,113 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Star, ShoppingCart, Truck, ShieldCheck, BookOpen, Leaf } from "lucide-react";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
 
-const allProducts = [
-  {
-    id: 1,
-    name: "Gardening Tool Kit",
-    nursery: "Green Valley Nursery",
-    rating: 4.1,
-    price: 599,
-    category: "Tools",
-    inStock: true,
-    description: "Complete 5-piece kit with trowel, pruner, rake, gloves, and spray bottle.",
-    careInstructions: "Clean after use. Store in dry place.",
-    image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80",
-  },
-  {
-    id: 2,
-    name: "Bougainvillea",
-    nursery: "Herb Haven",
-    rating: 4.5,
-    price: 275,
-    category: "Flowering",
-    inStock: true,
-    description: "Vibrant flowering plant known for its stunning papery bracts in shades of pink and purple.",
-    careInstructions: "Water regularly. Place in full sunlight. Prune after flowering.",
-    image: "https://images.unsplash.com/photo-1596547609652-9cf5d8d76921?w=800&q=80",
-  },
-  {
-    id: 3,
-    name: "Aloe Vera",
-    nursery: "Nature's Nest",
-    rating: 4.7,
-    price: 179,
-    category: "Indoor",
-    inStock: true,
-    description: "Low-maintenance succulent known for its soothing gel and air-purifying properties.",
-    careInstructions: "Water sparingly every 2-3 weeks. Keep in bright indirect light.",
-    image: "https://images.unsplash.com/photo-1567748157439-651aca2ff064?w=800&q=80",
-  },
-  {
-    id: 4,
-    name: "Jasmine Plant",
-    nursery: "Bloom Garden",
-    rating: 4.6,
-    price: 320,
-    category: "Flowering",
-    inStock: true,
-    description: "Fragrant flowering vine that fills your space with a beautiful natural scent.",
-    careInstructions: "Water moderately. Provide support for climbing. Loves morning sun.",
-    image: "https://images.unsplash.com/photo-1444021465936-c6ca81d39b84?w=800&q=80",
-  },
-  {
-    id: 5,
-    name: "Cactus Mix",
-    nursery: "Desert Blooms",
-    rating: 4.3,
-    price: 149,
-    category: "Indoor",
-    inStock: true,
-    description: "A curated mix of small desert cacti, perfect for windowsills and office desks.",
-    careInstructions: "Water once a month. Keep in bright direct sunlight. Well-draining soil.",
-    image: "https://images.unsplash.com/photo-1509423350716-97f9360b4e09?w=800&q=80",
-  },
-  {
-    id: 6,
-    name: "Sunflower Seeds",
-    nursery: "Seed World",
-    rating: 4.8,
-    price: 89,
-    category: "Seeds",
-    inStock: true,
-    description: "Premium quality sunflower seeds, ready to sow for bright and cheerful blooms.",
-    careInstructions: "Sow in sunny spot. Water daily. Germination in 7-10 days.",
-    image: "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=800&q=80",
-  },
-  {
-    id: 7,
-    name: "Ceramic Pot",
-    nursery: "Pot Studio",
-    rating: 4.4,
-    price: 450,
-    category: "Pots & Planters",
-    inStock: true,
-    description: "Handcrafted ceramic pot with drainage hole, perfect for indoor and outdoor plants.",
-    careInstructions: "Handle with care. Clean with damp cloth. Avoid harsh chemicals.",
-    image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=800&q=80",
-  },
-  {
-    id: 8,
-    name: "Ficus Tree",
-    nursery: "Green Valley Nursery",
-    rating: 4.2,
-    price: 899,
-    category: "Outdoor",
-    inStock: false,
-    description: "A classic ornamental tree with dense foliage, ideal for gardens and large indoor spaces.",
-    careInstructions: "Water twice a week. Avoid direct harsh sun. Prune annually.",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
-  },
-];
+const API_BASE = "http://localhost:5000/api/product";
 
 export default function ProductView() {
   const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
 
-  const product = allProducts.find((p) => p.id === Number(id));
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        // Fetch all and find by _id (no single-product route exists per your routes file)
+        const res = await fetch(`${API_BASE}/allProducts`);
+        const data = await res.json();
+        if (data.success) {
+          const found = data.data.find((p) => p._id === id);
+          setProduct(found || null);
+        }
+      } catch (err) {
+        console.error("Failed to fetch product:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <>
+        <UserNavBar />
+        <div className="min-h-screen bg-[#f7f9f6] flex items-center justify-center text-gray-400 text-sm">
+          Loading product...
+        </div>
+      </>
+    );
+  }
 
   if (!product) {
     return (
@@ -144,7 +78,7 @@ export default function ProductView() {
             {/* LEFT — Image */}
             <div className="w-full md:w-1/2 rounded-3xl overflow-hidden bg-[#f0f4ee] aspect-square">
               <img
-                src={product.image}
+                src={product.image || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80"}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
@@ -172,24 +106,27 @@ export default function ProductView() {
                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
                   {product.name}
                 </h1>
-                <p className="text-sm text-gray-400">by {product.nursery}</p>
+                <p className="text-sm text-gray-400">by {product.nursery || "GreenNest"}</p>
               </div>
 
               {/* Rating */}
-              <div className="flex items-center gap-1.5">
-                <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                <span className="text-sm font-semibold text-gray-700">{product.rating}</span>
-              </div>
+              {product.rating > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                  <span className="text-sm font-semibold text-gray-700">{product.rating}</span>
+                </div>
+              )}
 
               {/* Price */}
               <p className="text-4xl font-black text-[#3d6b45]">₹{product.price}</p>
 
               {/* Description */}
-              <p className="text-sm text-gray-500 leading-relaxed">{product.description}</p>
+              {product.description && (
+                <p className="text-sm text-gray-500 leading-relaxed">{product.description}</p>
+              )}
 
               {/* Quantity + Add to Cart */}
               <div className="flex items-center gap-3">
-                {/* Quantity Selector */}
                 <div className="flex items-center gap-3 border border-[#c8d9c0] rounded-xl px-4 py-2.5 bg-white">
                   <button
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -206,7 +143,6 @@ export default function ProductView() {
                   </button>
                 </div>
 
-                {/* Add to Cart Button */}
                 <button
                   disabled={!product.inStock}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all duration-150 hover:scale-[1.02] active:scale-95 ${
@@ -237,13 +173,15 @@ export default function ProductView() {
               </div>
 
               {/* Care Instructions */}
-              <div className="bg-[#f0f4ee] border border-[#c8d9c0] rounded-2xl px-5 py-4 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <Leaf className="w-4 h-4 text-[#3d6b45]" />
-                  <h3 className="text-sm font-bold text-[#3d6b45]">Care Instructions</h3>
+              {product.careInstructions && (
+                <div className="bg-[#f0f4ee] border border-[#c8d9c0] rounded-2xl px-5 py-4 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Leaf className="w-4 h-4 text-[#3d6b45]" />
+                    <h3 className="text-sm font-bold text-[#3d6b45]">Care Instructions</h3>
+                  </div>
+                  <p className="text-sm text-[#4a7c52] leading-relaxed">{product.careInstructions}</p>
                 </div>
-                <p className="text-sm text-[#4a7c52] leading-relaxed">{product.careInstructions}</p>
-              </div>
+              )}
 
             </div>
           </div>

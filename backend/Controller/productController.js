@@ -1,157 +1,93 @@
 const Product = require("../models/productModel");
 
-// GET all products
+// GET /allProducts — public, used by user-facing pages
 const getAllProducts = async (req, res) => {
   try {
-    const { category, sort, search } = req.query;
-
-    let query = {};
-
-    // Filter by category
-    if (category && category !== "All Types") {
-      query.category = category;
-    }
-
-    // Search by name or nursery
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { nursery: { $regex: search, $options: "i" } },
-      ];
-    }
-
-    let products = Product.find(query);
-
-    // Sort
-    if (sort === "Price: Low to High") products = products.sort({ price: 1 });
-    else if (sort === "Price: High to Low") products = products.sort({ price: -1 });
-    else if (sort === "Top Rated") products = products.sort({ rating: -1 });
-    else products = products.sort({ createdAt: -1 }); // Newest
-
-    const result = await products;
-
-    res.status(200).json({
-      success: true,
-      count: result.length,
-      data: result,
-    });
+    const products = await Product.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, data: products });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Failed to fetch products", error: error.message });
   }
 };
 
-// GET single product by ID
+// GET /product/:id — public
 const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-
     if (!product) {
       return res.status(404).json({ success: false, message: "Product not found" });
     }
-
     res.status(200).json({ success: true, data: product });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Failed to fetch product", error: error.message });
   }
 };
 
-// POST create new product
+// POST /insertProduct — admin only
 const createProduct = async (req, res) => {
-  console.log("POST /api/products body:", req.body);
   try {
-    const { name, nursery, price, category, stock, rating, description, careInstructions, image } = req.body;
+    const { name, nursery, price, category, stock, description, careInstructions, images, rating } = req.body;
 
-    if (!name || !price || !category) {
-      return res.status(400).json({ success: false, message: "Name, price and category are required" });
-    }
-
-    const product = await Product.create({
+    const product = new Product({
       name,
       nursery,
       price,
       category,
       stock,
-      rating,
       description,
       careInstructions,
-      image,
+      images: Array.isArray(images) ? images : images ? [images] : [], // ✅ always store as array
+      rating,
     });
 
-    res.status(201).json({ success: true, data: product });
+    const saved = await product.save();
+    res.status(201).json({ success: true, data: saved });
   } catch (error) {
-    console.error("Error in createProduct:", error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: "Failed to create product", error: error.message });
   }
 };
 
-// PUT update product
+// PUT /updateProduct/:id — admin only
 const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const { id } = req.params;
+    const updates = req.body;
 
+    const product = await Product.findById(id);
     if (!product) {
       return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    const updated = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    // ✅ Normalize images to array if provided in update
+    if (updates.images !== undefined) {
+      updates.images = Array.isArray(updates.images)
+        ? updates.images
+        : updates.images
+        ? [updates.images]
+        : [];
+    }
+
+    Object.assign(product, updates);
+    const updated = await product.save();
 
     res.status(200).json({ success: true, data: updated });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: "Failed to update product", error: error.message });
   }
 };
 
-// DELETE product
+// DELETE /deleteProduct/:id — admin only
 const deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-
-    if (!product) {
+    const { id } = req.params;
+    const deleted = await Product.findByIdAndDelete(id);
+    if (!deleted) {
       return res.status(404).json({ success: false, message: "Product not found" });
     }
-
-    await Product.findByIdAndDelete(req.params.id);
-
     res.status(200).json({ success: true, message: "Product deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Failed to delete product", error: error.message });
   }
 };
 
-// PATCH update stock
-const updateStock = async (req, res) => {
-  try {
-    const { stock } = req.body;
-
-    if (stock === undefined || stock < 0) {
-      return res.status(400).json({ success: false, message: "Valid stock value is required" });
-    }
-
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      { stock, status: stock === 0 ? "Out of Stock" : stock <= 10 ? "Low Stock" : "Active" },
-      { new: true }
-    );
-
-    if (!product) {
-      return res.status(404).json({ success: false, message: "Product not found" });
-    }
-
-    res.status(200).json({ success: true, data: product });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-module.exports = {
-  getAllProducts,
-  getProductById,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  updateStock,
-};
+module.exports = { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct };
