@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, ShoppingCart, Star, ChevronDown } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
 
@@ -26,9 +26,10 @@ function useInView(threshold = 0.1) {
 
 export default function Products() {
   const { getToken, isSignedIn } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState("All Types");
   const [selectedSort, setSelectedSort] = useState("Newest");
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -69,6 +70,13 @@ export default function Products() {
       setAddingId(null);
     }
   };
+
+  useEffect(() => {
+    const query = searchParams.get("search");
+    if (query !== null) {
+      setSearch(query);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);
