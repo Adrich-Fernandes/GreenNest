@@ -4,8 +4,9 @@ import { Link } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
 
-const API_BASE = "http://localhost:5000/api/product";
+import { useAuth } from "@clerk/clerk-react";
 
+const API_BASE = "http://localhost:8000/api/products"; 
 const categories = ["All Types", "Indoor", "Outdoor", "Flowering", "Seeds", "Pots & Planters", "Tools"];
 const sortOptions = ["Newest", "Price: Low to High", "Price: High to Low", "Top Rated"];
 
@@ -24,6 +25,7 @@ function useInView(threshold = 0.1) {
 }
 
 export default function Products() {
+  const { getToken, isSignedIn } = useAuth();
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -34,12 +36,45 @@ export default function Products() {
   const [mounted, setMounted] = useState(false);
   const [cardsRef, cardsInView] = useInView(0.05);
 
+  const [addingId, setAddingId] = useState(null);
+
+  const handleAddToCart = async (e, productId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isSignedIn) {
+      alert("Please login to add items to cart! 🌿");
+      return;
+    }
+
+    setAddingId(productId);
+    try {
+      const token = await getToken();
+      const res = await fetch("http://localhost:8000/api/cart/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ productId, quantity: 1 })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Optional: show a toast or success state
+        alert("Added to cart! 🌿");
+      }
+    } catch (err) {
+      console.error("Cart error:", err);
+    } finally {
+      setAddingId(null);
+    }
+  };
+
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-  // Fetch products from backend
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -62,14 +97,13 @@ export default function Products() {
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         (p.nursery || "").toLowerCase().includes(search.toLowerCase());
       const matchesCategory = selectedCategory === "All Types" || p.category === selectedCategory;
-      // Only show in-stock or active products to users
       return matchesSearch && matchesCategory && p.status !== "Out of Stock";
     })
     .sort((a, b) => {
       if (selectedSort === "Price: Low to High") return a.price - b.price;
       if (selectedSort === "Price: High to Low") return b.price - a.price;
       if (selectedSort === "Top Rated") return b.rating - a.rating;
-      return new Date(b.createdAt) - new Date(a.createdAt); // Newest
+      return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
   return (
@@ -163,16 +197,23 @@ export default function Products() {
                 <Link
                   to={`/plants/${product._id}`}
                   key={product._id}
-                  className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer group ${cardsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                  className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer group opacity-100 translate-y-0`}
                   style={{ transitionDelay: `${i * 60}ms` }}
                 >
                   <div className="flex flex-row sm:flex-col">
                     <div className="relative w-36 h-36 shrink-0 sm:w-full sm:h-52 bg-[#f0f4ee] overflow-hidden sm:rounded-none rounded-l-2xl">
+                      {/* ✅ Use first image from array, fallback to placeholder */}
                       <img
-                        src={product.image || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80"}
+                        src={product.images?.[0] || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80"}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
+                      {/* ✅ Show image count badge if more than 1 image */}
+                      {product.images?.length > 1 && (
+                        <span className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
+                          +{product.images.length - 1}
+                        </span>
+                      )}
                       <span className="absolute top-2 left-2 bg-[#f0f4ee] text-[#3d6b45] text-xs font-semibold px-2 py-0.5 rounded-full">
                         {product.category}
                       </span>
@@ -189,11 +230,12 @@ export default function Products() {
                       <div className="flex items-center justify-between mt-2 sm:mt-3">
                         <span className="text-base sm:text-lg font-bold text-gray-900">₹{product.price}</span>
                         <button
-                          onClick={(e) => e.preventDefault()}
-                          className="flex items-center gap-1 sm:gap-1.5 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95"
+                          onClick={(e) => handleAddToCart(e, product._id)}
+                          disabled={addingId === product._id}
+                          className="flex items-center gap-1 sm:gap-1.5 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95 disabled:opacity-50"
                         >
-                          <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          Add
+                          <ShoppingCart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${addingId === product._id ? "animate-bounce" : ""}`} />
+                          {addingId === product._id ? "Adding..." : "Add"}
                         </button>
                       </div>
                     </div>

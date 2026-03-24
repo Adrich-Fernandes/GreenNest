@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Product = require("../models/productModel");
 
 // GET /allProducts — public, used by user-facing pages
@@ -13,7 +14,11 @@ const getAllProducts = async (req, res) => {
 // GET /product/:id — public
 const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid product ID" });
+    }
+    const product = await Product.findById(id);
     if (!product) {
       return res.status(404).json({ success: false, message: "Product not found" });
     }
@@ -36,7 +41,7 @@ const createProduct = async (req, res) => {
       stock,
       description,
       careInstructions,
-      images: Array.isArray(images) ? images : images ? [images] : [], // ✅ always store as array
+      images: Array.isArray(images) ? images : images ? [images] : [], // always store as array
       rating,
     });
 
@@ -58,7 +63,7 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    // ✅ Normalize images to array if provided in update
+    // Normalize images to array if provided in update
     if (updates.images !== undefined) {
       updates.images = Array.isArray(updates.images)
         ? updates.images

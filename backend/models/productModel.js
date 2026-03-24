@@ -4,7 +4,7 @@ const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Product name is required"],
+      required: true,
       trim: true,
     },
     nursery: {
@@ -14,12 +14,12 @@ const productSchema = new mongoose.Schema(
     },
     price: {
       type: Number,
-      required: [true, "Price is required"],
+      required: true,
       min: [0, "Price cannot be negative"],
     },
     category: {
       type: String,
-      required: [true, "Category is required"],
+      required: true,
       enum: ["Indoor", "Outdoor", "Flowering", "Seeds", "Pots & Planters", "Tools"],
     },
     stock: {

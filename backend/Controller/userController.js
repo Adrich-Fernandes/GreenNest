@@ -42,4 +42,77 @@ const getMyProfile = async (req, res) => {
   }
 };
 
-module.exports = { syncUser, getMyProfile };
+// Get cart items
+const getCart = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("cart.product");
+    res.status(200).json({ success: true, data: user.cart });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Add to cart
+const addToCart = async (req, res) => {
+  try {
+    const { productId, quantity = 1 } = req.body;
+    const user = await User.findById(req.user._id);
+
+    const cartItemIndex = user.cart.findIndex(
+      (item) => item.product.toString() === productId
+    );
+
+    if (cartItemIndex > -1) {
+      user.cart[cartItemIndex].quantity += quantity;
+    } else {
+      user.cart.push({ product: productId, quantity });
+    }
+
+    await user.save();
+    res.status(200).json({ success: true, message: "Added to cart" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Update cart quantity
+const updateCartQuantity = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { qty } = req.body;
+    const user = await User.findById(req.user._id);
+
+    const cartItem = user.cart.find(
+      (item) => item.product.toString() === productId
+    );
+
+    if (cartItem) {
+      cartItem.quantity = qty;
+      await user.save();
+      res.status(200).json({ success: true, message: "Quantity updated" });
+    } else {
+      res.status(404).json({ success: false, message: "Item not found in cart" });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Remove from cart
+const removeFromCart = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const user = await User.findById(req.user._id);
+
+    user.cart = user.cart.filter(
+      (item) => item.product.toString() !== productId
+    );
+
+    await user.save();
+    res.status(200).json({ success: true, message: "Removed from cart" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { syncUser, getMyProfile, getCart, addToCart, updateCartQuantity, removeFromCart };

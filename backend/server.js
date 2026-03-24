@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const productRoutes = require("./Routes/productRoutes");
+const userRoutes = require("./Routes/userRouts");
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/products", productRoutes);
+app.use("/api/cart", userRoutes);
 
 // Health check
 app.get("/", (req, res) => {
@@ -38,10 +40,10 @@ const MONGO_URI = process.env.MONGO_URI;
 mongoose
   .connect(MONGO_URI)
   .then(() => {
-    console.log("✅ MongoDB connected");
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    console.log("MongoDB connected");
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => {
-    console.error("❌ MongoDB connection failed:", err.message);
+    console.error("MongoDB connection failed:", err.message);
     process.exit(1);
   });

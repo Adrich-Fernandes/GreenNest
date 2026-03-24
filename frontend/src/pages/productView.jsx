@@ -3,25 +3,58 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Star, ShoppingCart, Truck, ShieldCheck, BookOpen, Leaf } from "lucide-react";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
+import { useAuth } from "@clerk/clerk-react";
 
-const API_BASE = "http://localhost:5000/api/product";
+const API_BASE = "http://localhost:8000/api/products"; // ✅ fixed port + plural
 
 export default function ProductView() {
+  const { getToken, isSignedIn } = useAuth();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [activeImage, setActiveImage] = useState(0);
+  const [adding, setAdding] = useState(false);
+
+  const handleAddToCart = async () => {
+    if (!isSignedIn) {
+      alert("Please login to add items to cart! 🌿");
+      return;
+    }
+
+    setAdding(true);
+    try {
+      const token = await getToken();
+      const res = await fetch("http://localhost:8000/api/cart/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ productId: product._id, quantity })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Added to cart! 🌿");
+      } else {
+        alert(data.message || "Failed to add to cart");
+      }
+    } catch (err) {
+      console.error("Cart error:", err);
+      alert("Could not connect to server");
+    } finally {
+      setAdding(false);
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        // Fetch all and find by _id (no single-product route exists per your routes file)
-        const res = await fetch(`${API_BASE}/allProducts`);
+        const res = await fetch(`${API_BASE}/product/${id}`);
         const data = await res.json();
         if (data.success) {
-          const found = data.data.find((p) => p._id === id);
-          setProduct(found || null);
+          setProduct(data.data);
         }
       } catch (err) {
         console.error("Failed to fetch product:", err);
@@ -57,6 +90,9 @@ export default function ProductView() {
     );
   }
 
+  // ✅ images fallback
+  const images = product.images && product.images.length > 0 ? product.images : [product.image || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80"];
+
   return (
     <>
       <UserNavBar />
@@ -75,13 +111,32 @@ export default function ProductView() {
           {/* Main Content */}
           <div className="flex flex-col md:flex-row gap-10 items-start">
 
-            {/* LEFT — Image */}
-            <div className="w-full md:w-1/2 rounded-3xl overflow-hidden bg-[#f0f4ee] aspect-square">
-              <img
-                src={product.image || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80"}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
+            {/* LEFT — Images */}
+            <div className="w-full md:w-1/2 flex flex-col gap-4">
+              <div className="rounded-3xl overflow-hidden bg-[#f0f4ee] aspect-square shadow-sm">
+                <img
+                  src={images[activeImage]}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              {/* ✅ Thumbnails if multiple images */}
+              {images.length > 1 && (
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                  {images.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImage(idx)}
+                      className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${
+                        activeImage === idx ? "border-[#3d6b45]" : "border-transparent opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* RIGHT — Details */}
@@ -144,15 +199,16 @@ export default function ProductView() {
                 </div>
 
                 <button
-                  disabled={!product.inStock}
+                  onClick={handleAddToCart}
+                  disabled={!product.inStock || adding}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all duration-150 hover:scale-[1.02] active:scale-95 ${
-                    product.inStock
+                    product.inStock && !adding
                       ? "bg-[#3d6b45] hover:bg-[#345c3c] text-white"
                       : "bg-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
                 >
-                  <ShoppingCart className="w-4 h-4" />
-                  Add to Cart
+                  <ShoppingCart className={`w-4 h-4 ${adding ? "animate-bounce" : ""}`} />
+                  {adding ? "Adding..." : "Add to Cart"}
                 </button>
               </div>
 

@@ -11,7 +11,7 @@ const navLinks = [
 
 export default function UserNavBar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [cartCount] = useState(2);
+  const [cartCount] = useState(0);
   const location = useLocation();
 
   return (
@@ -62,14 +62,14 @@ export default function UserNavBar() {
 
           {/* Right: Cart + Login */}
           <div className="flex items-center gap-2 shrink-0">
-            <button className="relative p-2 text-gray-500 hover:text-[#3d6b45] rounded-lg hover:bg-[#f0f4ee] transition-colors">
+            <Link to="/cart" className="relative p-2 text-gray-500 hover:text-[#3d6b45] rounded-lg hover:bg-[#f0f4ee] transition-colors">
               <ShoppingCart className="w-5 h-5" strokeWidth={1.75} />
               {cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#3d6b45] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
-            </button>
+            </Link>
             
             <SignedOut>
               <SignInButton mode="modal">

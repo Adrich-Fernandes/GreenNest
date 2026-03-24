@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
 
+const API_BASE = "http://localhost:8000/api/products";
+
 function useInView(threshold = 0.15) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -124,19 +126,20 @@ export default function HeroSection() {
       <FreshArrivals />
       <GardeningServices />
 
-      {/* FOOTER */}
       <Footer />
     </>
   );
 }
 
+// ── Shop By Category ──────────────────────────────────────────────────────────
+
 const categories = [
-  { label: "Indoor Plants", icon: ShoppingBag, bg: "bg-[#f0f4ee]", iconColor: "text-[#3d6b45]" },
-  { label: "Outdoor Plants", icon: Leaf, bg: "bg-[#f0f4ee]", iconColor: "text-[#4a7c52]" },
-  { label: "Flowering", icon: Flower2, bg: "bg-pink-50", iconColor: "text-pink-500" },
-  { label: "Seeds", icon: Sprout, bg: "bg-amber-50", iconColor: "text-amber-600" },
-  { label: "Pots & Planters", icon: Droplets, bg: "bg-sky-50", iconColor: "text-sky-600" },
-  { label: "Gardening Tools", icon: Shovel, bg: "bg-orange-50", iconColor: "text-orange-500" },
+  { label: "Indoor Plants",    icon: ShoppingBag, bg: "bg-[#f0f4ee]",  iconColor: "text-[#3d6b45]"   },
+  { label: "Outdoor Plants",   icon: Leaf,        bg: "bg-[#f0f4ee]",  iconColor: "text-[#4a7c52]"   },
+  { label: "Flowering",        icon: Flower2,     bg: "bg-pink-50",    iconColor: "text-pink-500"     },
+  { label: "Seeds",            icon: Sprout,      bg: "bg-amber-50",   iconColor: "text-amber-600"   },
+  { label: "Pots & Planters",  icon: Droplets,    bg: "bg-sky-50",     iconColor: "text-sky-600"     },
+  { label: "Gardening Tools",  icon: Shovel,      bg: "bg-orange-50",  iconColor: "text-orange-500"  },
 ];
 
 function ShopByCategory() {
@@ -171,77 +174,130 @@ function ShopByCategory() {
   );
 }
 
-const products = [
-  { id: 1, name: "Gardening Tool Kit", nursery: "Green Valley Nursery", rating: 4.1, price: 599, category: "Tools", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80" },
-  { id: 2, name: "Bougainvillea", nursery: "Herb Haven", rating: 4.5, price: 275, category: "Flowering", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1596547609652-9cf5d8d76921?w=400&q=80" },
-  { id: 3, name: "Aloe Vera", nursery: "Nature's Nest", rating: 4.7, price: 179, category: "Indoor", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1567748157439-651aca2ff064?w=400&q=80" },
-  { id: 4, name: "Jasmine Plant", nursery: "Bloom Garden", rating: 4.6, price: 320, category: "Flowering", categoryColor: "bg-[#f0f4ee] text-[#3d6b45]", image: "https://images.unsplash.com/photo-1444021465936-c6ca81d39b84?w=400&q=80" },
-];
+// ── Fresh Arrivals (live from backend) ────────────────────────────────────────
 
 function FreshArrivals() {
-  const [ref, inView] = useInView();
+  const [ref, inView]           = useInView();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading]   = useState(true);
+
+  useEffect(() => {
+    const fetchFresh = async () => {
+      try {
+        const res  = await fetch(`${API_BASE}/allProducts`);
+        const data = await res.json();
+        if (data.success) {
+          const fresh = data.data
+            .filter((p) => p.status !== "Out of Stock")
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, 4);
+          setProducts(fresh);
+        }
+      } catch (err) {
+        console.error("Failed to fetch fresh arrivals:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFresh();
+  }, []);
+
   return (
     <section ref={ref} className="w-full py-16 px-6 md:px-16 bg-[#f7f9f6]">
       <div className="max-w-7xl mx-auto">
+
+        {/* Header */}
         <div className={`flex items-start justify-between mb-8 transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
           <div>
             <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Fresh Arrivals</h2>
             <p className="text-sm text-gray-400 mt-1">Handpicked plants just for you</p>
           </div>
-          <Link to="/plants" className="flex items-center gap-1 text-[#3d6b45] hover:text-[#345c3c] text-sm font-semibold transition-colors">
+          <Link to="/products" className="flex items-center gap-1 text-[#3d6b45] hover:text-[#345c3c] text-sm font-semibold transition-colors">
             View All <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-          {products.map((product, i) => (
-            <Link
-              to={`/plants/${product.id}`}
-              key={product.id}
-              className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer group ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-              style={{ transitionDelay: `${i * 100}ms` }}
-            >
-              <div className="relative w-full h-52 bg-[#f0f4ee] overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <span className={`absolute top-3 left-3 ${product.categoryColor} text-xs font-semibold px-3 py-1 rounded-full`}>
-                  {product.category}
-                </span>
-              </div>
-              <div className="px-4 pt-4 pb-5 flex flex-col gap-2">
-                <div>
-                  <h3 className="text-base font-bold text-gray-900 leading-tight">{product.name}</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">{product.nursery}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                  <span className="text-xs font-medium text-gray-600">{product.rating}</span>
-                </div>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-lg font-bold text-gray-900">₹{product.price}</span>
-                  <button
-                    onClick={(e) => e.preventDefault()}
-                    className="flex items-center gap-1.5 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95"
-                  >
-                    <ShoppingCart className="w-4 h-4" />
-                    Add
-                  </button>
+
+        {/* Loading skeleton */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
+                <div className="w-full h-52 bg-[#f0f4ee]" />
+                <div className="px-4 pt-4 pb-5 flex flex-col gap-3">
+                  <div className="h-3 bg-[#f0f4ee] rounded-full w-3/4" />
+                  <div className="h-2.5 bg-[#f0f4ee] rounded-full w-1/2" />
+                  <div className="h-2.5 bg-[#f0f4ee] rounded-full w-1/4" />
+                  <div className="flex justify-between mt-1">
+                    <div className="h-5 bg-[#f0f4ee] rounded-full w-16" />
+                    <div className="h-8 bg-[#f0f4ee] rounded-xl w-20" />
+                  </div>
                 </div>
               </div>
-            </Link>
-          ))}
-        </div>
+            ))}
+          </div>
+
+        ) : products.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <p className="text-gray-400 text-sm">No products available right now.</p>
+          </div>
+
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+            {products.map((product, i) => (
+              <Link
+                to={`/plants/${product._id}`}
+                key={product._id}
+                className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer group ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                style={{ transitionDelay: `${i * 100}ms` }}
+              >
+                <div className="relative w-full h-52 bg-[#f0f4ee] overflow-hidden">
+                  <img
+                    src={product.images?.[0] || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80"}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 bg-[#f0f4ee] text-[#3d6b45] text-xs font-semibold px-3 py-1 rounded-full">
+                    {product.category}
+                  </span>
+                  <span className="absolute top-3 right-3 bg-[#3d6b45] text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                    New
+                  </span>
+                </div>
+                <div className="px-4 pt-4 pb-5 flex flex-col gap-2">
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900 leading-tight">{product.name}</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">{product.nursery || "GreenNest"}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                    <span className="text-xs font-medium text-gray-600">{product.rating || "New"}</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-lg font-bold text-gray-900">₹{product.price}</span>
+                    <button
+                      onClick={(e) => e.preventDefault()}
+                      className="flex items-center gap-1.5 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
+// ── Gardening Services ────────────────────────────────────────────────────────
+
 const services = [
-  { id: 1, icon: Home, title: "Home Gardening", description: "Professional setup and maintenance for your home garden" },
-  { id: 2, icon: Trees, title: "Lawn Maintenance", description: "Keep your lawn lush, green and perfectly maintained" },
-  { id: 3, icon: Scissors, title: "Plant Care & Pruning", description: "Expert care, trimming and health check for your plants" },
+  { id: 1, icon: Home,     title: "Home Gardening",       description: "Professional setup and maintenance for your home garden"    },
+  { id: 2, icon: Trees,    title: "Lawn Maintenance",      description: "Keep your lawn lush, green and perfectly maintained"        },
+  { id: 3, icon: Scissors, title: "Plant Care & Pruning",  description: "Expert care, trimming and health check for your plants"     },
 ];
 
 function GardeningServices() {
