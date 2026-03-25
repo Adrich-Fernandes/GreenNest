@@ -7,6 +7,7 @@ const navLinks = [
   { label: "Home", to: "/" },
   { label: "Plants & Products", to: "/products" },
   { label: "Gardeners", to: "/gardeners" },
+  { label: "Orders", to: "/orders" },
 ];
 
 const API_BASE = "http://localhost:8000/api/products";
