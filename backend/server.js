@@ -5,6 +5,7 @@ require("dotenv").config();
 
 const productRoutes = require("./Routes/productRoutes");
 const userRoutes = require("./Routes/userRouts");
+const orderRoutes = require("./Routes/orderRoutes");
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api/products", productRoutes);
 app.use("/api/cart", userRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/orders", orderRoutes);
 
 // Health check
 app.get("/", (req, res) => {

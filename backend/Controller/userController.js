@@ -115,4 +115,54 @@ const removeFromCart = async (req, res) => {
   }
 };
 
-module.exports = { syncUser, getMyProfile, getCart, addToCart, updateCartQuantity, removeFromCart };
+// Get user addresses
+const getAddresses = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    res.status(200).json({ success: true, data: user.address });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Add new address
+const addAddress = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const newAddress = req.body;
+    
+    if (newAddress.isDefault || user.address.length === 0) {
+      newAddress.isDefault = true;
+      user.address.forEach(addr => addr.isDefault = false);
+    }
+
+    user.address.push(newAddress);
+    await user.save();
+    
+    const addedAddress = user.address[user.address.length - 1];
+    res.status(200).json({ success: true, message: "Address added", data: addedAddress });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Delete address
+const deleteAddress = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const addressId = req.params.id;
+    
+    user.address = user.address.filter(addr => addr._id.toString() !== addressId);
+    
+    if (user.address.length > 0 && !user.address.some(addr => addr.isDefault)) {
+      user.address[0].isDefault = true;
+    }
+
+    await user.save();
+    res.status(200).json({ success: true, message: "Address deleted" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { syncUser, getMyProfile, getCart, addToCart, updateCartQuantity, removeFromCart, getAddresses, addAddress, deleteAddress };
