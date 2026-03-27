@@ -435,7 +435,7 @@ export default function Cart() {
                     }}
                     className="w-full bg-[#3d6b45] hover:bg-[#345c3c] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    {selectedAddress ? "Proceed to Checkout" : "Select Delivery Address"}
+                    {selectedAddress ? "buy now" : "Select Delivery Address"}
                     <ArrowRight className="w-4 h-4" />
                   </button>
 

@@ -55,7 +55,9 @@ const getCart = async (req, res) => {
 // Add to cart
 const addToCart = async (req, res) => {
   try {
-    const { productId, quantity = 1 } = req.body;
+    const { productId } = req.body;
+    let quantity = Number(req.body.quantity) || 1;
+    
     const user = await User.findById(req.user._id);
 
     const cartItemIndex = user.cart.findIndex(
@@ -67,6 +69,23 @@ const addToCart = async (req, res) => {
     } else {
       user.cart.push({ product: productId, quantity });
     }
+
+    // Deduplicate cart array in case of race conditions
+    const uniqueCart = [];
+    const seenMap = new Map();
+
+    for (const item of user.cart) {
+      const pid = item.product.toString();
+      if (seenMap.has(pid)) {
+        // If seen, add to existing item's quantity
+        const existingItem = seenMap.get(pid);
+        existingItem.quantity += item.quantity;
+      } else {
+        seenMap.set(pid, item);
+        uniqueCart.push(item);
+      }
+    }
+    user.cart = uniqueCart;
 
     await user.save();
     res.status(200).json({ success: true, message: "Added to cart" });
