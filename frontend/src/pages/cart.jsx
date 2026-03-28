@@ -3,13 +3,14 @@ import {
   Trash2, Plus, Minus, ShoppingBag, Leaf, ArrowRight,
   Loader2, MapPin, ChevronDown, ChevronUp, Check, X
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
 import { useAuth } from "@clerk/clerk-react";
 
 const API_BASE      = "http://localhost:8000/api/cart";
 const USER_API_BASE = "http://localhost:8000/api/user";
+const ORDER_API_BASE = "http://localhost:8000/api/orders";
 
 const INDIAN_STATES = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh",
@@ -46,10 +47,12 @@ function inputCls(error = "") {
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function Cart() {
   const { getToken } = useAuth();
+  const navigate = useNavigate();
 
   // Cart state
   const [items, setItems]           = useState([]);
   const [loading, setLoading]       = useState(true);
+  const [placingOrder, setPlacingOrder] = useState(false);
   const [mounted, setMounted]       = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
   const [removingId, setRemovingId] = useState(null);
@@ -217,6 +220,33 @@ export default function Cart() {
   const handleFormChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (formErrors[field]) setFormErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  // ── Place order ──────────────────────────────────────────────────────────────
+  const handlePlaceOrder = async () => {
+    if (!selectedAddress) { setAddressOpen(true); return; }
+    setPlacingOrder(true);
+    try {
+      const token = await getToken();
+      const res = await fetch(`${ORDER_API_BASE}/place`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ address: selectedAddress })
+      });
+      const data = await res.json();
+      if (data.success) {
+        navigate("/orders");
+      } else {
+        alert(data.message || "Failed to place order");
+      }
+    } catch (e) {
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setPlacingOrder(false);
+    }
   };
 
   // ── Render ────────────────────────────────────────────────────────────────────
@@ -429,14 +459,18 @@ export default function Cart() {
 
                   {/* Checkout button */}
                   <button
-                    onClick={() => {
-                      if (!selectedAddress) { setAddressOpen(true); return; }
-                      alert("Checkout coming soon! 🌿");
-                    }}
-                    className="w-full bg-[#3d6b45] hover:bg-[#345c3c] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
+                    onClick={handlePlaceOrder}
+                    disabled={placingOrder}
+                    className="w-full bg-[#3d6b45] hover:bg-[#345c3c] disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    {selectedAddress ? "buy now" : "Select Delivery Address"}
-                    <ArrowRight className="w-4 h-4" />
+                    {placingOrder ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> processing…</>
+                    ) : (
+                      <>
+                        {selectedAddress ? "buy now" : "Select Delivery Address"}
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
                   </button>
 
                   {/* Toggle address panel */}

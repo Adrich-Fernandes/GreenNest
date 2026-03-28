@@ -111,11 +111,15 @@ const MOCK_ORDERS = [
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-  out_for_delivery: { color: "text-blue-600",   bg: "bg-blue-50",   border: "border-blue-200", dot: "bg-blue-500",   icon: Truck,         label: "Out for Delivery" },
-  delivered:        { color: "text-[#3d6b45]",  bg: "bg-[#f0f4ee]", border: "border-[#c8d9c0]", dot: "bg-[#3d6b45]", icon: CheckCircle2,  label: "Delivered"        },
-  return_requested: { color: "text-orange-600", bg: "bg-orange-50", border: "border-orange-200", dot: "bg-orange-500", icon: RefreshCw,     label: "Return Requested" },
-  cancelled:        { color: "text-red-500",    bg: "bg-red-50",    border: "border-red-200",   dot: "bg-red-400",    icon: XCircle,       label: "Cancelled"        },
-  processing:       { color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-200", dot: "bg-purple-500", icon: Clock,         label: "Processing"       },
+  ordered:          { color: "text-amber-600",    bg: "bg-amber-50",  border: "border-amber-200",  dot: "bg-amber-500",  icon: Package,       label: "Ordered"          },
+  shipped:          { color: "text-purple-600",   bg: "bg-purple-50", border: "border-purple-200", dot: "bg-purple-500", icon: Truck,         label: "Shipped"          },
+  out_for_delivery: { color: "text-blue-600",     bg: "bg-blue-50",   border: "border-blue-200",   dot: "bg-blue-500",   icon: Truck,         label: "Out for Delivery" },
+  delivered:        { color: "text-[#3d6b45]",    bg: "bg-[#f0f4ee]", border: "border-[#c8d9c0]",  dot: "bg-[#3d6b45]", icon: CheckCircle2,  label: "Delivered"        },
+  return_requested: { color: "text-orange-600",   bg: "bg-orange-50", border: "border-orange-200", dot: "bg-orange-500", icon: RefreshCw,     label: "Return Requested" },
+  return_confirmed: { color: "text-[#3d6b45]",    bg: "bg-[#f0f4ee]", border: "border-[#c8d9c0]",  dot: "bg-[#3d6b45]", icon: PackageCheck,   label: "Return Confirmed" },
+  refunded:         { color: "text-blue-600",     bg: "bg-blue-50",   border: "border-blue-200",   dot: "bg-blue-500",   icon: CheckCircle2,  label: "Refunded"         },
+  cancelled:        { color: "text-red-500",      bg: "bg-red-50",    border: "border-red-200",    dot: "bg-red-400",    icon: XCircle,       label: "Cancelled"        },
+  cancel_requested: { color: "text-red-400",      bg: "bg-red-50",    border: "border-red-100",    dot: "bg-red-300",    icon: Clock,         label: "Cancel Requested" },
 };
 
 const FILTER_TABS = ["All", "Active", "Delivered", "Returns", "Cancelled"];
@@ -445,10 +449,21 @@ function OrderCard({ order, index, mounted, onReturnRequest }) {
                 </div>
               )}
 
+              {/* Cancel order */}
+              {order.canCancel && (
+                <button
+                  onClick={() => onCancel(order._id)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-red-500 bg-red-50 border border-red-100 px-3 py-2 rounded-xl hover:bg-red-100 transition-colors"
+                >
+                  <XCircle className="w-3.5 h-3.5" /> Cancel Order
+                </button>
+              )}
+
               {/* Cancelled badge */}
-              {order.statusKey === "cancelled" && (
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-red-500 bg-red-50 border border-red-200 px-3 py-2 rounded-xl">
-                  <PackageX className="w-3.5 h-3.5" /> Order Cancelled
+              {(order.statusKey === "cancelled" || order.statusKey === "cancel_requested") && (
+                <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border ${order.statusKey === 'cancelled' ? 'text-red-500 bg-red-50 border-red-200' : 'text-red-400 bg-red-50 border-red-100'}`}>
+                  {order.statusKey === 'cancelled' ? <PackageX className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                  <span>{order.status}</span>
                 </div>
               )}
 
@@ -504,12 +519,31 @@ export default function Orders() {
 
   const filtered = orders.filter((o) => {
     if (filter === "All")       return true;
-    if (filter === "Active")    return ["out_for_delivery", "processing"].includes(o.statusKey);
+    if (filter === "Active")    return ["ordered", "shipped", "out_for_delivery"].includes(o.statusKey);
     if (filter === "Delivered") return o.statusKey === "delivered";
     if (filter === "Returns")   return o.statusKey === "return_requested" || o.returnStatus;
     if (filter === "Cancelled") return o.statusKey === "cancelled";
     return true;
   });
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+    try {
+      const token = await getToken();
+      const res = await fetch(`http://localhost:8000/api/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders((prev) => prev.map((o) => o._id === orderId ? data.data : o));
+      } else {
+        alert(data.message || "Failed to cancel order");
+      }
+    } catch (err) {
+      alert("Something went wrong");
+    }
+  };
 
   const handleReturnSubmit = async (reason, details) => {
     try {
@@ -569,7 +603,7 @@ export default function Orders() {
             <div className="flex gap-2 mt-6 overflow-x-auto pb-1 scrollbar-hide">
               {FILTER_TABS.map((tab) => {
                 const count = tab === "All" ? orders.length
-                  : tab === "Active"    ? orders.filter((o) => ["out_for_delivery","processing"].includes(o.statusKey)).length
+                  : tab === "Active"    ? orders.filter((o) => ["ordered", "shipped", "out_for_delivery"].includes(o.statusKey)).length
                   : tab === "Delivered" ? orders.filter((o) => o.statusKey === "delivered").length
                   : tab === "Returns"   ? orders.filter((o) => o.statusKey === "return_requested" || o.returnStatus).length
                   : orders.filter((o) => o.statusKey === "cancelled").length;
@@ -627,6 +661,7 @@ export default function Orders() {
                   index={i}
                   mounted={mounted}
                   onReturnRequest={(o) => setReturnModal(o)}
+                  onCancel={handleCancelOrder}
                 />
               ))}
             </div>
