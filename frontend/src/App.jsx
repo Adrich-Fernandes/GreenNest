@@ -7,6 +7,7 @@ import ProductView from './pages/productView'
 import Cart from './pages/cart'
 import UserSync from './components/UserSync'
 import Orders from './pages/orders'
+import Appointments from './pages/appointments'
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <Route path="/plants/:id" element={<ProductView />} />
         <Route path="/cart" element={<Cart />} />
         <Route path='/orders' element={<Orders />} />
+        <Route path='/appointments' element={<Appointments />} />
       </Routes>
     </div>
   )
