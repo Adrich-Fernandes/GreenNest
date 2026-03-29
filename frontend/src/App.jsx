@@ -9,7 +9,7 @@ import Cart from './pages/cart'
 import UserSync from './components/UserSync'
 import Orders from './pages/orders'
 import Appointments from './pages/appointments'
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react'
+import UserGuard from './components/UserGuard'
 
 const App = () => {
   return (
@@ -21,21 +21,11 @@ const App = () => {
         <Route path="/gardeners" element={<Gardeners />} />
         <Route path="/gardeners/:id" element={<GardenerView />} />
         <Route path="/plants/:id" element={<ProductView />} />
-        <Route path="/cart" element={<Cart />} />
         
-        {/* Protected Routes */}
-        <Route path='/orders' element={
-          <>
-            <SignedIn><Orders /></SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
-        <Route path='/appointments' element={
-          <>
-            <SignedIn><Appointments /></SignedIn>
-            <SignedOut><RedirectToSignIn /></SignedOut>
-          </>
-        } />
+        {/* User Only Routes */}
+        <Route path="/cart" element={<UserGuard><Cart /></UserGuard>} />
+        <Route path='/orders' element={<UserGuard><Orders /></UserGuard>} />
+        <Route path='/appointments' element={<UserGuard><Appointments /></UserGuard>} />
       </Routes>
     </div>
   )

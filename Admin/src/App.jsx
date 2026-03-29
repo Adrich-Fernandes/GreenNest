@@ -5,17 +5,21 @@ import Products from './pages/Products';
 import Gardners from './pages/Gardners';
 import Orders from './pages/Orders';
 import Returns from './pages/Returns';
-import GardnerAppointments from './Gardner/dashboard';
+import Login from './pages/Login';
+import GardenerAppointments from './Gardner/dashboard';
 import GardenerGuard from './components/GardenerGuard';
+import AdminGuard from './components/AdminGuard';
+import GardnerAppointments from './Gardner/dashboard';
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/products" element={<Products />} />
-      <Route path="/gardeners" element={<Gardners />} />
-      <Route path="/orders" element={<Orders />} />
-      <Route path="/returns" element={<Returns />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<AdminGuard><Dashboard /></AdminGuard>} />
+      <Route path="/products" element={<AdminGuard><Products /></AdminGuard>} />
+      <Route path="/gardeners" element={<AdminGuard><Gardners /></AdminGuard>} />
+      <Route path="/orders" element={<AdminGuard><Orders /></AdminGuard>} />
+      <Route path="/returns" element={<AdminGuard><Returns /></AdminGuard>} />
       <Route path="/gardener/dashboard" element={<GardenerGuard><GardnerAppointments /></GardenerGuard>} />
       <Route path="/gardener/services" element={<GardenerGuard><GardnerAppointments /></GardenerGuard>} />
     </Routes>

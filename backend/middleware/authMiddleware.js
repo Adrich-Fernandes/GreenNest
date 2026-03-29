@@ -44,4 +44,24 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+const isAdmin = admin; // Alias for consistency
+
+// Middleware for strict customer (user) only access
+const isUser = (req, res, next) => {
+  if (req.user && req.user.role === "user") {
+    next();
+  } else {
+    res.status(403).json({ success: false, message: "Access denied, users only" });
+  }
+};
+
+// Middleware for strict professional gardener only access
+const isGardener = (req, res, next) => {
+  if (req.user && req.user.role === "gardener") {
+    next();
+  } else {
+    res.status(403).json({ success: false, message: "Access denied, gardeners only" });
+  }
+};
+
+module.exports = { protect, admin, isAdmin, isUser, isGardener };
