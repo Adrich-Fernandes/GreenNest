@@ -1,4 +1,4 @@
-import { Eye, Pencil, Loader2, Check, X, RotateCcw } from "lucide-react";
+import { Eye, Pencil, Loader2, Check, X, RotateCcw, AlertCircle, MessageSquare } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
@@ -6,14 +6,11 @@ import { useAuth } from "@clerk/clerk-react";
 const API_BASE = "http://localhost:8000/api/orders/admin";
 
 const statusStyles = {
-  delivered: "bg-[#f0f4ee] text-[#3d6b45] border-[#c8d9c0]",
-  processing: "bg-amber-50 text-amber-700 border-amber-200",
-  out_for_delivery: "bg-blue-50 text-blue-700 border-blue-200",
-  cancelled: "bg-red-50 text-red-500 border-red-200",
-  return_requested: "bg-orange-50 text-orange-600 border-orange-200",
-  return_confirmed: "bg-green-50 text-green-700 border-green-200",
+  cancelled: "bg-red-50 text-red-700 border-red-200",
+  return_requested: "bg-amber-50 text-amber-700 border-amber-200",
+  return_confirmed: "bg-orange-50 text-orange-700 border-orange-200",
   refunded: "bg-blue-50 text-blue-700 border-blue-200",
-  cancel_requested: "bg-red-50 text-red-600 border-red-200",
+  cancel_requested: "bg-rose-50 text-rose-700 border-rose-200",
 };
 
 export default function Returns() {
@@ -74,106 +71,123 @@ export default function Returns() {
   return (
     <AdminLayout>
       <div className="flex flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-            <RotateCcw className="w-5 h-5 text-orange-600" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center shadow-sm">
+              <RotateCcw className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Return Management</h1>
+              <p className="text-sm text-gray-400 mt-1">Resolution dashboard for returns and cancellations</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Returns & Cancellations</h1>
-            <p className="text-sm text-gray-400 mt-1">Manage product returns, refunds and cancellation requests</p>
+          <div className="flex gap-2">
+            <div className="px-3 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-bold border border-amber-200 flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5" />
+              {orders.filter(o => ["return_requested", "cancel_requested"].includes(o.statusKey)).length} Pending Actions
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-[#e8ede6]">
+        <div className="bg-white rounded-3xl shadow-md border border-amber-100 overflow-hidden">
           {loading ? (
-            <div className="p-12 flex flex-col items-center gap-3 text-gray-400">
-              <Loader2 className="w-8 h-8 animate-spin" />
-              <p className="text-sm font-medium">Loading requests...</p>
+            <div className="p-20 flex flex-col items-center gap-4 text-gray-400">
+              <Loader2 className="w-10 h-10 animate-spin text-amber-500" />
+              <p className="text-sm font-semibold tracking-wide uppercase">Fetching resolution requests...</p>
             </div>
           ) : orders.length === 0 ? (
-            <div className="p-16 flex flex-col items-center gap-4 text-center">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center">
-                <RotateCcw className="w-8 h-8 text-gray-300" />
+            <div className="p-20 flex flex-col items-center gap-4 text-center">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
+                <Check className="w-10 h-10 text-gray-200" />
               </div>
               <div>
-                <p className="text-gray-900 font-semibold">No active return requests</p>
-                <p className="text-sm text-gray-400 mt-1">When customers request a return or cancellation, they will appear here.</p>
+                <p className="text-gray-900 font-bold text-lg">Inbox Zero!</p>
+                <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">All returns and cancellations have been processed and resolved.</p>
               </div>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-gray-400 border-b border-[#f0f4ee]">
-                    <th className="text-left px-6 py-4 font-medium">Order ID</th>
-                    <th className="text-left px-6 py-4 font-medium">Customer</th>
-                    <th className="text-left px-6 py-4 font-medium">Product(s)</th>
-                    <th className="text-left px-6 py-4 font-medium">Amount</th>
-                    <th className="text-left px-6 py-4 font-medium">Date</th>
-                    <th className="text-left px-6 py-4 font-medium">Request Status</th>
-                    <th className="text-left px-6 py-4 font-medium text-right">Actions</th>
+                  <tr className="text-[11px] text-amber-800 bg-amber-50/50 uppercase tracking-widest font-bold border-b border-amber-100">
+                    <th className="text-left px-6 py-5 font-bold">Request Info</th>
+                    <th className="text-left px-6 py-5 font-bold">Reason & Details</th>
+                    <th className="text-left px-6 py-5 font-bold">Product(s)</th>
+                    <th className="text-left px-6 py-5 font-bold">Ref. Amount</th>
+                    <th className="text-left px-6 py-5 font-bold">Current Status</th>
+                    <th className="text-right px-6 py-5 font-bold">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {orders.map((o, i) => (
-                    <tr key={o._id} className={`border-b border-[#f0f4ee] hover:bg-[#fafcfa] transition-colors ${i === orders.length - 1 ? "border-0" : ""}`}>
-                      <td className="px-6 py-4 font-mono text-[11px] text-gray-400">#{o._id.slice(-6).toUpperCase()}</td>
-                      <td className="px-6 py-4">
-                        <p className="font-semibold text-gray-800">{o.user?.name || "Deleted User"}</p>
-                        <p className="text-[10px] text-gray-400">{o.user?.email}</p>
+                <tbody className="divide-y divide-amber-50">
+                  {orders.map((o) => (
+                    <tr key={o._id} className="hover:bg-amber-50/30 transition-colors group">
+                      <td className="px-6 py-5">
+                        <div className="flex flex-col gap-1">
+                          <span className="font-mono text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded w-fit">#{o._id.slice(-6).toUpperCase()}</span>
+                          <p className="font-bold text-gray-800">{o.user?.name || "Deleted User"}</p>
+                          <p className="text-[10px] text-gray-400">{o.user?.email}</p>
+                        </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-0.5">
+                      <td className="px-6 py-5">
+                        <div className="flex flex-col gap-1.5 max-w-[200px]">
+                          <div className="flex items-center gap-1.5 text-amber-700 font-semibold text-xs">
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            {o.returnReason || "Cancellation Requested"}
+                          </div>
+                          <p className="text-[11px] text-gray-500 italic line-clamp-2">"{o.returnDetails || "No additional comments provided."}"</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex flex-col gap-1">
                           {o.items.map((item, idx) => (
-                            <span key={idx} className="text-xs text-gray-500 line-clamp-1">
-                              {item.name} <span className="text-[10px] text-gray-300">x{item.qty}</span>
+                            <span key={idx} className="text-xs text-gray-600 flex items-center gap-1.5">
+                              <span className="w-1 h-1 bg-amber-300 rounded-full" />
+                              {item.name} <span className="text-[10px] font-bold text-gray-400">x{item.qty}</span>
                             </span>
                           ))}
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-bold text-gray-900">₹{o.total.toLocaleString("en-IN")}</td>
-                      <td className="px-6 py-4 text-gray-400 text-xs">
-                        {new Date(o.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })}
+                      <td className="px-6 py-5">
+                        <div className="font-bold text-gray-900 text-base">₹{o.total.toLocaleString("en-IN")}</div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-tight font-bold">{new Date(o.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })}</p>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1.5">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border w-fit ${statusStyles[o.statusKey] || ""}`}>
-                            {o.status}
-                          </span>
-                          <div className="flex gap-1">
-                            {o.statusKey === "return_requested" && (
-                              <button
-                                onClick={() => updateStatus(o._id, "return_confirmed", "Return Confirmed")}
-                                className="text-[9px] bg-[#3d6b45] text-white px-2 py-1 rounded-md font-bold hover:bg-[#345c3c]"
-                              >
-                                Confirm Return
-                              </button>
-                            )}
-                            {o.statusKey === "return_confirmed" && (
-                              <button
-                                onClick={() => updateStatus(o._id, "refunded", "Refunded")}
-                                className="text-[9px] bg-blue-600 text-white px-2 py-1 rounded-md font-bold hover:bg-blue-700"
-                              >
-                                Mark Refunded
-                              </button>
-                            )}
-                            {o.statusKey === "cancel_requested" && (
-                              <button
-                                onClick={() => updateStatus(o._id, "cancelled", "Order Cancelled")}
-                                className="text-[9px] bg-red-600 text-white px-2 py-1 rounded-md font-bold hover:bg-red-700"
-                              >
-                                Confirm Cancel
-                              </button>
-                            )}
+                      <td className="px-6 py-5">
+                        <span className={`text-[10px] font-bold px-3 py-1 rounded-full border shadow-sm ${statusStyles[o.statusKey] || ""}`}>
+                          {o.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <div className="flex flex-col items-end gap-2">
+                          {o.statusKey === "return_requested" && (
+                            <button
+                              onClick={() => updateStatus(o._id, "return_confirmed", "Return Confirmed")}
+                              className="text-[10px] bg-amber-600 text-white px-4 py-1.5 rounded-xl font-bold hover:bg-amber-700 shadow-sm transition-all active:scale-95"
+                            >
+                              Confirm Return
+                            </button>
+                          )}
+                          {o.statusKey === "return_confirmed" && (
+                            <button
+                              onClick={() => updateStatus(o._id, "refunded", "Refunded")}
+                              className="text-[10px] bg-blue-600 text-white px-4 py-1.5 rounded-xl font-bold hover:bg-blue-700 shadow-sm transition-all active:scale-95"
+                            >
+                              Issue Refund
+                            </button>
+                          )}
+                          {o.statusKey === "cancel_requested" && (
+                            <button
+                              onClick={() => updateStatus(o._id, "cancelled", "Order Cancelled")}
+                              className="text-[10px] bg-rose-600 text-white px-4 py-1.5 rounded-xl font-bold hover:bg-rose-700 shadow-sm transition-all active:scale-95"
+                            >
+                              Approve Cancel
+                            </button>
+                          )}
+                          <div className="flex items-center gap-2 opacity-10 group-hover:opacity-100 transition-opacity">
+                            <button className="p-2 hover:bg-amber-100 rounded-lg text-amber-600 transition-all" title="View Logs">
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            {updatingId === o._id && <Loader2 className="w-4 h-4 animate-spin text-amber-600" />}
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button className="p-2 hover:bg-[#f0f4ee] rounded-xl text-gray-400 hover:text-[#3d6b45] transition-all" title="View Details">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          {updatingId === o._id && <Loader2 className="w-4 h-4 animate-spin text-[#3d6b45]" />}
                         </div>
                       </td>
                     </tr>
