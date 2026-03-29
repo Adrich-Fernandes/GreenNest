@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart, Leaf, Menu, X, Search } from "lucide-react";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from "@clerk/clerk-react";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -26,6 +26,14 @@ export default function UserNavBar() {
   const inputRef                           = useRef(null);
   const location                           = useLocation();
   const navigate                           = useNavigate();
+  const { isSignedIn }                     = useAuth();
+
+  const filteredNavLinks = navLinks.filter((link) => {
+    if (["Orders", "Appointments"].includes(link.label)) {
+      return isSignedIn;
+    }
+    return true;
+  });
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -116,7 +124,7 @@ export default function UserNavBar() {
 
           {/* Desktop Nav */}
           <ul className="hidden md:flex items-center gap-1 shrink-0">
-            {navLinks.map((link) => {
+            {filteredNavLinks.map((link) => {
               const isActive = location.pathname === link.to;
               return (
                 <li key={link.label}>
@@ -362,7 +370,7 @@ export default function UserNavBar() {
 
         {/* Drawer Links */}
         <nav className="flex flex-col gap-1 px-4 py-4 flex-1">
-          {navLinks.map((link) => {
+          {filteredNavLinks.map((link) => {
             const isActive = location.pathname === link.to;
             return (
               <Link

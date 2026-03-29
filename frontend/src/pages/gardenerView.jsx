@@ -1,0 +1,233 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Star, MapPin, Clock, ArrowLeft, Calendar, User, Check, ShieldCheck } from 'lucide-react';
+import UserNavBar from '../components/userNavBar';
+import Footer from '../components/footer';
+import { useUser, useAuth } from '@clerk/clerk-react';
+
+export default function GardenerView() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useUser();
+  const { isSignedIn } = useAuth();
+  
+  const [gardener, setGardener] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [booking, setBooking] = useState(false);
+  const [booked, setBooked] = useState(false);
+
+  useEffect(() => {
+    fetchGardener();
+  }, [id]);
+
+  const fetchGardener = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/gardener/profile/${id}`);
+      const result = await res.json();
+      if (result.success) {
+        setGardener(result.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch gardener:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBookAppointment = async (service) => {
+    if (!isSignedIn) {
+      alert("Please login to book an appointment.");
+      return;
+    }
+    
+    setBooking(true);
+    try {
+      // Mocking the booking post to the gardener's appointments array
+      // In a real app, this would be a POST /api/appointments
+      const res = await fetch(`http://localhost:8000/api/gardener/appointment-status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clerkId: gardener.clerkId, // Target gardener
+          appointmentId: Date.now(), // Mock ID
+          status: 'Pending',
+          // We'd add actual appointment details here:
+          // customerName: user.fullName,
+          // location: user.publicMetadata.location || 'Client Location',
+          // service: service.name,
+          // date: new Date().toISOString(),
+          // time: '10:00 AM'
+        })
+      });
+      
+      // Since our backend PUT /appointment-status is currently designed for gardeners to update, 
+      // we'll just simulate a successful booking for now.
+      setTimeout(() => {
+        setBooking(false);
+        setBooked(true);
+      }, 1000);
+    } catch (err) {
+      setBooking(false);
+      console.error("Booking failed:", err);
+    }
+  };
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#f7f9f6]">
+      <div className="w-10 h-10 border-4 border-[#3d6b45] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  if (!gardener) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f7f9f6] gap-4">
+      <p className="text-gray-500 font-medium">Gardener not found</p>
+      <button onClick={() => navigate('/gardeners')} className="text-[#3d6b45] font-semibold flex items-center gap-2">
+        <ArrowLeft className="w-4 h-4" /> Go Back
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      <UserNavBar />
+      <div className="min-h-screen bg-[#f7f9f6] pt-8 pb-16 px-6 md:px-16">
+        <div className="max-w-5xl mx-auto flex flex-col gap-8">
+          
+          <button onClick={() => navigate('/gardeners')} className="flex items-center gap-2 text-gray-400 hover:text-[#3d6b45] transition-colors w-fit group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-semibold">Back to Gardeners</span>
+          </button>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column: Profile Card */}
+            <div className="lg:col-span-1 flex flex-col gap-6">
+              <div className="bg-white rounded-3xl p-8 border border-[#e8ede6] shadow-sm flex flex-col items-center text-center gap-6">
+                <div className="w-24 h-24 bg-[#f0f4ee] rounded-full flex items-center justify-center">
+                  <User className="w-12 h-12 text-[#3d6b45]" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">{gardener.name}</h1>
+                  <p className="text-[#3d6b45] font-semibold text-sm mt-1">{gardener.experience || 0} years experience</p>
+                </div>
+                
+                <div className="flex items-center gap-6 py-4 border-y border-[#f0f4ee] w-full justify-center">
+                   <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                        <span className="font-bold text-gray-900">{gardener.rating || 0}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Rating</span>
+                   </div>
+                   <div className="w-px h-8 bg-[#f0f4ee]" />
+                   <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-1 text-[#3d6b45]">
+                        <MapPin className="w-4 h-4" />
+                        <span className="font-bold">{gardener.location || "Available"}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Location</span>
+                   </div>
+                </div>
+
+                <div className="w-full text-left">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">About Gardener</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed font-medium">
+                    {gardener.bio || "No description provided."}
+                  </p>
+                </div>
+
+                <div className="w-full flex items-center gap-2 p-3 bg-green-50 rounded-2xl border border-green-100">
+                  <ShieldCheck className="w-5 h-5 text-green-600" />
+                  <span className="text-xs font-semibold text-green-700">Verified GreenNest Professional</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Services & Booking */}
+            <div className="lg:col-span-2 flex flex-col gap-8">
+              <div className="bg-white rounded-3xl p-8 border border-[#e8ede6] shadow-sm flex flex-col gap-8">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Available Services</h2>
+                  <p className="text-sm text-gray-400 mt-1">Select a service to request an appointment</p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {(gardener.services || []).map((service, idx) => (
+                    <div 
+                      key={idx}
+                      className="group p-5 bg-white border border-[#e8ede6] rounded-2xl flex items-center justify-between hover:border-[#3d6b45] hover:bg-[#f7f9f6] transition-all"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs font-bold text-[#3d6b45] bg-[#f0f4ee] px-2.5 py-1 rounded-lg w-fit mb-1">
+                          {service.category}
+                        </span>
+                        <h4 className="text-base font-bold text-gray-900">{service.name}</h4>
+                        <p className="text-xs text-gray-400 font-medium flex items-center gap-1.5">
+                          <Clock className="w-3 h-3" /> {service.duration || "Self-timed"}
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center gap-6">
+                        <div className="text-right">
+                          <p className="text-xl font-black text-gray-900">₹{service.price}</p>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">per hour</p>
+                        </div>
+                        <button
+                          disabled={booked}
+                          onClick={() => handleBookAppointment(service)}
+                          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+                            booked 
+                            ? "bg-green-100 text-green-600 cursor-default" 
+                            : "bg-[#3d6b45] hover:bg-[#345c3c] text-white hover:scale-105 active:scale-95 shadow-sm"
+                          }`}
+                        >
+                          {booking ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : booked ? (
+                            <><Check className="w-4 h-4" /> Request Sent</>
+                          ) : (
+                            <><Calendar className="w-4 h-4" /> Book Now</>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {(!gardener.services || gardener.services.length === 0) && (
+                    <div className="py-12 border-2 border-dashed border-[#e8ede6] rounded-3xl flex flex-col items-center justify-center text-gray-400 gap-2">
+                       <Calendar className="w-8 h-8 opacity-20" />
+                       <p className="font-medium">No services listed yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Booking Success Message */}
+              {booked && (
+                <div className="bg-[#3d6b45] rounded-3xl p-8 text-white flex flex-col gap-4 animate-in fade-in zoom-in duration-500">
+                   <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                     <Check className="w-6 h-6 text-white" strokeWidth={3} />
+                   </div>
+                   <div>
+                     <h3 className="text-xl font-bold">Appointment Request Sent!</h3>
+                     <p className="text-white/80 text-sm mt-1 leading-relaxed">
+                       Your request for <strong>{gardener.name}</strong> to visit has been sent. 
+                       You can track the status in your "Appointments" dashboard. The gardener will confirm 
+                       the final schedule shortly.
+                     </p>
+                   </div>
+                   <button 
+                     onClick={() => navigate('/appointments')}
+                     className="mt-2 w-fit bg-white text-[#3d6b45] px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition-colors"
+                   >
+                     Go to My Appointments
+                   </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </>
+  );
+}

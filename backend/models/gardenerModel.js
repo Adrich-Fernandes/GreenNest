@@ -20,9 +20,16 @@ const gardenerSchema = new mongoose.Schema({
   location: { 
     type: String 
   },
-  services: [{ 
-    type: String 
-  }],
+  services: [
+    {
+      name: { type: String, required: true },
+      category: { type: String, required: true },
+      price: { type: Number, required: true },
+      duration: { type: String },
+      desc: { type: String },
+      active: { type: Boolean, default: true }
+    }
+  ],
   bio: { 
     type: String 
   },

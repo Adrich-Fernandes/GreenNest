@@ -4,14 +4,8 @@ import { Link } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
 
-const allGardeners = [
-  { id: 1, name: "Rajesh Kumar", rating: 4.8, location: "Mumbai", experience: 8, bio: "Experienced home gardener with 8 years of expertise in landscaping and plant care. Specializing in organic...", services: ["Home Gardening", "Lawn Maintenance", "Plant Care & Pruning"], price: 500 },
-  { id: 2, name: "Priya Sharma", rating: 4.9, location: "Delhi", experience: 10, bio: "Certified horticulturist passionate about creating beautiful outdoor spaces. Expert in flowering gardens.", services: ["Home Gardening", "Plant Care & Pruning"], price: 600 },
-  { id: 3, name: "Amit Patel", rating: 4.5, location: "Bangalore", experience: 6, bio: "Professional lawn care specialist. I make lawns lush, green and perfectly maintained year-round.", services: ["Lawn Maintenance"], price: 400 },
-  { id: 4, name: "Sunita Rao", rating: 4.7, location: "Chennai", experience: 9, bio: "Passionate plant lover with expertise in indoor and outdoor gardening. Specializing in tropical plants.", services: ["Home Gardening", "Plant Care & Pruning"], price: 550 },
-  { id: 5, name: "Vikram Singh", rating: 4.6, location: "Pune", experience: 7, bio: "Dedicated gardening professional with a focus on sustainable and eco-friendly gardening practices.", services: ["Home Gardening", "Lawn Maintenance"], price: 480 },
-  { id: 6, name: "Meena Joshi", rating: 4.8, location: "Hyderabad", experience: 12, bio: "Master gardener with over a decade of experience in landscape design and plant health management.", services: ["Home Gardening", "Lawn Maintenance", "Plant Care & Pruning"], price: 700 },
-];
+// Removed static allGardeners mock data
+const allServices = ["All Services", "Home Gardening", "Lawn Maintenance", "Plant Care & Pruning"];
 
 const serviceOptions = ["All Services", "Home Gardening", "Lawn Maintenance", "Plant Care & Pruning"];
 
@@ -30,6 +24,8 @@ function useInView(threshold = 0.1) {
 }
 
 export default function Gardeners() {
+  const [gardeners, setGardeners] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedService, setSelectedService] = useState("All Services");
   const [serviceOpen, setServiceOpen] = useState(false);
@@ -37,16 +33,34 @@ export default function Gardeners() {
   const [cardsRef, cardsInView] = useInView(0.05);
 
   useEffect(() => {
+    fetchGardeners();
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-  const filtered = allGardeners.filter((g) => {
+  const fetchGardeners = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/gardener");
+      const result = await res.json();
+      if (result.success) {
+        setGardeners(result.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch gardeners:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filtered = gardeners.filter((g) => {
     const matchesSearch =
-      g.name.toLowerCase().includes(search.toLowerCase()) ||
-      g.location.toLowerCase().includes(search.toLowerCase());
+      (g.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (g.location || "").toLowerCase().includes(search.toLowerCase());
+    
+    const gardenerServiceNames = (g.services || []).map(s => s.name);
     const matchesService =
-      selectedService === "All Services" || g.services.includes(selectedService);
+      selectedService === "All Services" || gardenerServiceNames.includes(selectedService);
+      
     return matchesSearch && matchesService;
   });
 
@@ -105,11 +119,29 @@ export default function Gardeners() {
             </div>
           </div>
 
-          {filtered.length > 0 ? (
+          {loading ? (
+             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+               {[1, 2, 3].map((n) => (
+                 <div key={n} className="bg-white rounded-2xl p-6 h-64 animate-pulse border border-[#e8ede6]">
+                   <div className="flex gap-4">
+                     <div className="w-14 h-14 bg-gray-100 rounded-full" />
+                     <div className="flex-1 space-y-3 py-1">
+                       <div className="h-4 bg-gray-100 rounded w-3/4" />
+                       <div className="h-3 bg-gray-100 rounded w-1/2" />
+                     </div>
+                   </div>
+                   <div className="mt-6 space-y-3">
+                     <div className="h-3 bg-gray-100 rounded" />
+                     <div className="h-3 bg-gray-100 rounded w-5/6" />
+                   </div>
+                 </div>
+               ))}
+             </div>
+          ) : filtered.length > 0 ? (
             <div ref={cardsRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 relative z-0">
               {filtered.map((gardener, i) => (
                 <div
-                  key={gardener.id}
+                  key={gardener._id}
                   className={`bg-white rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col gap-4 ${cardsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
                   style={{ transitionDelay: `${i * 80}ms` }}
                 >
@@ -122,37 +154,45 @@ export default function Gardeners() {
                       <div className="flex items-center gap-3 flex-wrap">
                         <div className="flex items-center gap-1">
                           <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                          <span className="text-xs font-semibold text-gray-700">{gardener.rating}</span>
+                          <span className="text-xs font-semibold text-gray-700">{gardener.rating || 0}</span>
                         </div>
                         <div className="flex items-center gap-1 text-gray-400">
                           <MapPin className="w-3.5 h-3.5" />
-                          <span className="text-xs">{gardener.location}</span>
+                          <span className="text-xs">{gardener.location || "Available"}</span>
                         </div>
                         <div className="flex items-center gap-1 text-gray-400">
                           <Clock className="w-3.5 h-3.5" />
-                          <span className="text-xs">{gardener.experience} yrs</span>
+                          <span className="text-xs">{gardener.experience || 0} yrs</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">{gardener.bio}</p>
+                  <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">{gardener.bio || "No description provided."}</p>
 
                   <div className="flex flex-wrap gap-2">
-                    {gardener.services.map((service) => (
-                      <span key={service} className="text-xs font-medium text-[#3d6b45] bg-[#f0f4ee] border border-[#c8d9c0] px-3 py-1 rounded-full">
-                        {service}
+                    {/* ... (services mapping) */}
+                    {(gardener.services || []).slice(0, 3).map((service, idx) => (
+                      <span key={idx} className="text-xs font-medium text-[#3d6b45] bg-[#f0f4ee] border border-[#c8d9c0] px-3 py-1 rounded-full">
+                        {service.name}
                       </span>
                     ))}
+                    {gardener.services?.length > 3 && (
+                      <span className="text-[10px] text-gray-400 font-medium py-1">
+                        +{gardener.services.length - 3} more
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between mt-auto pt-2">
                     <div>
-                      <span className="text-xl font-bold text-gray-900">₹{gardener.price}</span>
+                      <span className="text-xl font-bold text-gray-900">
+                        ₹{gardener.services?.[0]?.price || 0}
+                      </span>
                       <span className="text-xs text-gray-400 ml-1">/hr</span>
                     </div>
                     <Link
-                      to={`/gardeners/${gardener.id}`}
+                      to={`/gardeners/${gardener._id}`}
                       className="bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95"
                     >
                       Book Service

@@ -6,6 +6,7 @@ require("dotenv").config();
 const productRoutes = require("./Routes/productRoutes");
 const userRoutes = require("./Routes/userRouts");
 const orderRoutes = require("./Routes/orderRoutes");
+const gardenerRoutes = require("./Routes/gardenerRoutes");
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", userRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/gardener", gardenerRoutes);
 
 // Health check
 app.get("/", (req, res) => {

@@ -1,8 +1,15 @@
-import { Link } from "react-router-dom";
-import { Leaf, LogOut, Bell } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Leaf, Bell } from "lucide-react";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
 export default function GardenerNavBar() {
+  const location = useLocation();
+
+  const links = [
+    { label: "Appointments", to: "/gardener/dashboard" },
+    { label: "My Services", to: "/gardener/services" },
+  ];
+
   return (
     <nav className="bg-white border-b border-[#e8ede6] px-6 h-16 flex items-center justify-between sticky top-0 z-50 shadow-sm">
       <div className="flex items-center gap-2">
@@ -15,12 +22,22 @@ export default function GardenerNavBar() {
       </div>
 
       <div className="flex items-center gap-6">
-        <Link 
-          to="/gardener/dashboard" 
-          className="text-sm font-semibold text-[#3d6b45] border-b-2 border-[#3d6b45] pb-1"
-        >
-          Appointments
-        </Link>
+        {links.map((link) => {
+          const isActive = location.pathname === link.to;
+          return (
+            <Link
+              key={link.to}
+              to={link.to}
+              className={`text-sm font-semibold pb-1 transition-colors ${
+                isActive
+                  ? "text-[#3d6b45] border-b-2 border-[#3d6b45]"
+                  : "text-gray-500 border-b-2 border-transparent hover:text-[#3d6b45]"
+              }`}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
       </div>
 
       <div className="flex items-center gap-3">
@@ -28,7 +45,7 @@ export default function GardenerNavBar() {
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
         </button>
-        
+
         <SignedIn>
           <UserButton appearance={{ elements: { userButtonAvatarBox: "w-8 h-8" } }} />
         </SignedIn>

@@ -6,6 +6,7 @@ import Gardners from './pages/Gardners';
 import Orders from './pages/Orders';
 import Returns from './pages/Returns';
 import GardnerAppointments from './Gardner/dashboard';
+import GardenerGuard from './components/GardenerGuard';
 
 export default function App() {
   return (
@@ -15,7 +16,8 @@ export default function App() {
       <Route path="/gardeners" element={<Gardners />} />
       <Route path="/orders" element={<Orders />} />
       <Route path="/returns" element={<Returns />} />
-      <Route path="/gardener/dashboard" element={<GardnerAppointments />} />
+      <Route path="/gardener/dashboard" element={<GardenerGuard><GardnerAppointments /></GardenerGuard>} />
+      <Route path="/gardener/services" element={<GardenerGuard><GardnerAppointments /></GardenerGuard>} />
     </Routes>
   );
 }
