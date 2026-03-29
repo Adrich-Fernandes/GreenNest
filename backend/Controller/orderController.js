@@ -242,11 +242,27 @@ const requestReturn = async (req, res) => {
   }
 };
 
+// Admin: Get return-related orders
+const getReturnOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({
+      statusKey: { 
+        $in: ["return_requested", "return_confirmed", "refunded", "cancel_requested", "cancelled"] 
+      }
+    }).populate("user", "name email").sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, count: orders.length, data: orders });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getUserOrders,
   requestReturn,
   placeOrder,
   getAllOrders,
+  getReturnOrders,
   updateOrderStatus,
   cancelOrder
 };

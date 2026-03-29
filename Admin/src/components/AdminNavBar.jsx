@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Users, ShoppingCart, Leaf, X } from "lucide-react";
+import { LayoutDashboard, Package, Users, ShoppingCart, Leaf, X, RotateCcw } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
@@ -7,6 +7,7 @@ const sidebarLinks = [
   { label: "Products", icon: Package, path: "/products" },
   { label: "Gardeners", icon: Users, path: "/gardeners" },
   { label: "Orders", icon: ShoppingCart, path: "/orders" },
+  { label: "Returns", icon: RotateCcw, path: "/returns" },
 ];
 
 export default function Nav({ sidebarOpen, setSidebarOpen }) {
