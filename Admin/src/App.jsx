@@ -1,31 +1,38 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { RoleProvider } from './context/RoleContext';
+import RoleGate from './components/RoleGate';
+import UserSync from './components/UserSync';
+
+import Login from './pages/Login';
 import Dashboard from './pages/dashboard';
 import Products from './pages/Products';
 import Gardners from './pages/Gardners';
 import Orders from './pages/Orders';
 import Returns from './pages/Returns';
-import Login from './pages/Login';
-import GardenerAppointments from './Gardner/dashboard';
-import GardenerGuard from './components/GardenerGuard';
-import AdminGuard from './components/AdminGuard';
-import UserSync from './components/UserSync';
-import GardnerAppointments from './Gardner/dashboard';
+import GardenerDashboard from './Gardner/dashboard';
 
 export default function App() {
   return (
-    <>
+    <RoleProvider>
       <UserSync />
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<AdminGuard><Dashboard /></AdminGuard>} />
-        <Route path="/products" element={<AdminGuard><Products /></AdminGuard>} />
-        <Route path="/gardeners" element={<AdminGuard><Gardners /></AdminGuard>} />
-        <Route path="/orders" element={<AdminGuard><Orders /></AdminGuard>} />
-        <Route path="/returns" element={<AdminGuard><Returns /></AdminGuard>} />
-        <Route path="/gardener/dashboard" element={<GardenerGuard><GardnerAppointments /></GardenerGuard>} />
-        <Route path="/gardener/services" element={<GardenerGuard><GardenerAppointments /></GardenerGuard>} />
-      </Routes>
-    </>
+      <RoleGate>
+        <Routes>
+          {/* Public */}
+          <Route path="/login" element={<Login />} />
+
+          {/* Admin-only routes */}
+          <Route path="/"          element={<Dashboard />} />
+          <Route path="/products"  element={<Products />} />
+          <Route path="/gardeners" element={<Gardners />} />
+          <Route path="/orders"    element={<Orders />} />
+          <Route path="/returns"   element={<Returns />} />
+
+          {/* Gardener-only routes */}
+          <Route path="/gardener/dashboard" element={<GardenerDashboard />} />
+          <Route path="/gardener/services"  element={<GardenerDashboard />} />
+        </Routes>
+      </RoleGate>
+    </RoleProvider>
   );
 }

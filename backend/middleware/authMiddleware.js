@@ -57,7 +57,8 @@ const isUser = (req, res, next) => {
 
 // Middleware for strict professional gardener only access
 const isGardener = (req, res, next) => {
-  if (req.user && req.user.role === "gardener") {
+  const role = (req.user?.role || "").toLowerCase().trim();
+  if (role === "gardener" || role === "gardner") {
     next();
   } else {
     res.status(403).json({ success: false, message: "Access denied, gardeners only" });

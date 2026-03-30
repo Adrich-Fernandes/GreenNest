@@ -1,20 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, MapPin, Clock, ArrowLeft, Calendar, User, Check, ShieldCheck } from 'lucide-react';
+import { Star, MapPin, Clock, ArrowLeft, Calendar, User, Check, ShieldCheck, X, IndianRupee } from 'lucide-react';
 import UserNavBar from '../components/userNavBar';
 import Footer from '../components/footer';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useUser, useAuth, SignInButton } from '@clerk/clerk-react';
+
+const TIME_SLOTS = [
+  "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
+  "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM",
+  "04:00 PM", "05:00 PM",
+];
 
 export default function GardenerView() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useUser();
-  const { isSignedIn } = useAuth();
-  
+  const { user, isLoaded } = useUser();
+  const { isSignedIn, getToken } = useAuth();
+
   const [gardener, setGardener] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState(false);
+
+  // Booking modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [form, setForm] = useState({ date: "", time: "", location: "", note: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     fetchGardener();
@@ -24,9 +36,7 @@ export default function GardenerView() {
     try {
       const res = await fetch(`http://localhost:8000/api/gardener/profile/${id}`);
       const result = await res.json();
-      if (result.success) {
-        setGardener(result.data);
-      }
+      if (result.success) setGardener(result.data);
     } catch (err) {
       console.error("Failed to fetch gardener:", err);
     } finally {
@@ -34,41 +44,61 @@ export default function GardenerView() {
     }
   };
 
-  const handleBookAppointment = async (service) => {
-    if (!isSignedIn) {
-      alert("Please login to book an appointment.");
-      return;
-    }
-    
-    setBooking(true);
+  const openBookingModal = (service) => {
+    if (!isSignedIn) return;
+    setSelectedService(service);
+    setForm({ date: "", time: "", location: "", note: "" });
+    setErrors({});
+    setModalOpen(true);
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.date) e.date = "Please select a date";
+    if (!form.time) e.time = "Please select a time slot";
+    if (!form.location.trim()) e.location = "Please enter your address";
+    return e;
+  };
+
+  const handleSubmit = async () => {
+    const e = validate();
+    if (Object.keys(e).length > 0) { setErrors(e); return; }
+
+    setSubmitting(true);
     try {
-      // Mocking the booking post to the gardener's appointments array
-      // In a real app, this would be a POST /api/appointments
-      const res = await fetch(`http://localhost:8000/api/gardener/appointment-status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      const token = await getToken();
+      const res = await fetch("http://localhost:8000/api/gardener/book-appointment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
-          clerkId: gardener.clerkId, // Target gardener
-          appointmentId: Date.now(), // Mock ID
-          status: 'Pending',
-          // We'd add actual appointment details here:
-          // customerName: user.fullName,
-          // location: user.publicMetadata.location || 'Client Location',
-          // service: service.name,
-          // date: new Date().toISOString(),
-          // time: '10:00 AM'
-        })
+          gardenerId: gardener._id,
+          userId: user.id,
+          customerName: user.fullName || user.firstName || "Customer",
+          serviceName: selectedService.name,
+          service: selectedService.name,
+          price: selectedService.price,
+          duration: selectedService.duration,
+          date: form.date,
+          time: form.time,
+          location: form.location.trim(),
+          note: form.note.trim(),
+        }),
       });
-      
-      // Since our backend PUT /appointment-status is currently designed for gardeners to update, 
-      // we'll just simulate a successful booking for now.
-      setTimeout(() => {
-        setBooking(false);
+
+      const result = await res.json();
+      if (result.success) {
+        setModalOpen(false);
         setBooked(true);
-      }, 1000);
+      } else {
+        console.error("Booking failed:", result.message);
+      }
     } catch (err) {
-      setBooking(false);
-      console.error("Booking failed:", err);
+      console.error("Error submitting booking:", err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -87,19 +117,22 @@ export default function GardenerView() {
     </div>
   );
 
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <>
       <UserNavBar />
       <div className="min-h-screen bg-[#f7f9f6] pt-8 pb-16 px-6 md:px-16">
         <div className="max-w-5xl mx-auto flex flex-col gap-8">
-          
+
           <button onClick={() => navigate('/gardeners')} className="flex items-center gap-2 text-gray-400 hover:text-[#3d6b45] transition-colors w-fit group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             <span className="text-sm font-semibold">Back to Gardeners</span>
           </button>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column: Profile Card */}
+
+            {/* Profile Card */}
             <div className="lg:col-span-1 flex flex-col gap-6">
               <div className="bg-white rounded-3xl p-8 border border-[#e8ede6] shadow-sm flex flex-col items-center text-center gap-6">
                 <div className="w-24 h-24 bg-[#f0f4ee] rounded-full flex items-center justify-center">
@@ -109,23 +142,23 @@ export default function GardenerView() {
                   <h1 className="text-2xl font-bold text-gray-900">{gardener.name}</h1>
                   <p className="text-[#3d6b45] font-semibold text-sm mt-1">{gardener.experience || 0} years experience</p>
                 </div>
-                
+
                 <div className="flex items-center gap-6 py-4 border-y border-[#f0f4ee] w-full justify-center">
-                   <div className="flex flex-col items-center gap-1">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                        <span className="font-bold text-gray-900">{gardener.rating || 0}</span>
-                      </div>
-                      <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Rating</span>
-                   </div>
-                   <div className="w-px h-8 bg-[#f0f4ee]" />
-                   <div className="flex flex-col items-center gap-1">
-                      <div className="flex items-center gap-1 text-[#3d6b45]">
-                        <MapPin className="w-4 h-4" />
-                        <span className="font-bold">{gardener.location || "Available"}</span>
-                      </div>
-                      <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Location</span>
-                   </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                      <span className="font-bold text-gray-900">{gardener.rating || 0}</span>
+                    </div>
+                    <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Rating</span>
+                  </div>
+                  <div className="w-px h-8 bg-[#f0f4ee]" />
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex items-center gap-1 text-[#3d6b45]">
+                      <MapPin className="w-4 h-4" />
+                      <span className="font-bold">{gardener.location || "Available"}</span>
+                    </div>
+                    <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Location</span>
+                  </div>
                 </div>
 
                 <div className="w-full text-left">
@@ -142,7 +175,7 @@ export default function GardenerView() {
               </div>
             </div>
 
-            {/* Right Column: Services & Booking */}
+            {/* Services & Booking */}
             <div className="lg:col-span-2 flex flex-col gap-8">
               <div className="bg-white rounded-3xl p-8 border border-[#e8ede6] shadow-sm flex flex-col gap-8">
                 <div>
@@ -151,11 +184,8 @@ export default function GardenerView() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
-                  {(gardener.services || []).map((service, idx) => (
-                    <div 
-                      key={idx}
-                      className="group p-5 bg-white border border-[#e8ede6] rounded-2xl flex items-center justify-between hover:border-[#3d6b45] hover:bg-[#f7f9f6] transition-all"
-                    >
+                  {(gardener.services || []).filter(s => s.active !== false).map((service, idx) => (
+                    <div key={idx} className="group p-5 bg-white border border-[#e8ede6] rounded-2xl flex items-center justify-between hover:border-[#3d6b45] hover:bg-[#f7f9f6] transition-all">
                       <div className="flex flex-col gap-1">
                         <span className="text-xs font-bold text-[#3d6b45] bg-[#f0f4ee] px-2.5 py-1 rounded-lg w-fit mb-1">
                           {service.category}
@@ -164,63 +194,70 @@ export default function GardenerView() {
                         <p className="text-xs text-gray-400 font-medium flex items-center gap-1.5">
                           <Clock className="w-3 h-3" /> {service.duration || "Self-timed"}
                         </p>
+                        {service.desc && (
+                          <p className="text-xs text-gray-400 mt-1 max-w-xs line-clamp-2">{service.desc}</p>
+                        )}
                       </div>
-                      
-                      <div className="flex items-center gap-6">
+
+                      <div className="flex items-center gap-6 shrink-0">
                         <div className="text-right">
-                          <p className="text-xl font-black text-gray-900">₹{service.price}</p>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">per hour</p>
+                          <p className="text-xl font-black text-gray-900 flex items-center gap-0.5">
+                            <IndianRupee className="w-4 h-4" />{service.price}
+                          </p>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">per visit</p>
                         </div>
-                        <button
-                          disabled={booked}
-                          onClick={() => handleBookAppointment(service)}
-                          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
-                            booked 
-                            ? "bg-green-100 text-green-600 cursor-default" 
-                            : "bg-[#3d6b45] hover:bg-[#345c3c] text-white hover:scale-105 active:scale-95 shadow-sm"
-                          }`}
-                        >
-                          {booking ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : booked ? (
-                            <><Check className="w-4 h-4" /> Request Sent</>
-                          ) : (
-                            <><Calendar className="w-4 h-4" /> Book Now</>
-                          )}
-                        </button>
+
+                        {isSignedIn ? (
+                          <button
+                            disabled={booked}
+                            onClick={() => openBookingModal(service)}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+                              booked
+                                ? "bg-green-100 text-green-600 cursor-default"
+                                : "bg-[#3d6b45] hover:bg-[#345c3c] text-white hover:scale-105 active:scale-95 shadow-sm"
+                            }`}
+                          >
+                            {booked ? <><Check className="w-4 h-4" /> Booked</> : <><Calendar className="w-4 h-4" /> Book Now</>}
+                          </button>
+                        ) : (
+                          <SignInButton mode="modal">
+                            <button className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-[#3d6b45] hover:bg-[#345c3c] text-white transition-all hover:scale-105">
+                              <Calendar className="w-4 h-4" /> Login to Book
+                            </button>
+                          </SignInButton>
+                        )}
                       </div>
                     </div>
                   ))}
 
-                  {(!gardener.services || gardener.services.length === 0) && (
+                  {(!gardener.services || gardener.services.filter(s => s.active !== false).length === 0) && (
                     <div className="py-12 border-2 border-dashed border-[#e8ede6] rounded-3xl flex flex-col items-center justify-center text-gray-400 gap-2">
-                       <Calendar className="w-8 h-8 opacity-20" />
-                       <p className="font-medium">No services listed yet.</p>
+                      <Calendar className="w-8 h-8 opacity-20" />
+                      <p className="font-medium">No services listed yet.</p>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Booking Success Message */}
+              {/* Booking Success Banner */}
               {booked && (
-                <div className="bg-[#3d6b45] rounded-3xl p-8 text-white flex flex-col gap-4 animate-in fade-in zoom-in duration-500">
-                   <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                     <Check className="w-6 h-6 text-white" strokeWidth={3} />
-                   </div>
-                   <div>
-                     <h3 className="text-xl font-bold">Appointment Request Sent!</h3>
-                     <p className="text-white/80 text-sm mt-1 leading-relaxed">
-                       Your request for <strong>{gardener.name}</strong> to visit has been sent. 
-                       You can track the status in your "Appointments" dashboard. The gardener will confirm 
-                       the final schedule shortly.
-                     </p>
-                   </div>
-                   <button 
-                     onClick={() => navigate('/appointments')}
-                     className="mt-2 w-fit bg-white text-[#3d6b45] px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition-colors"
-                   >
-                     Go to My Appointments
-                   </button>
+                <div className="bg-[#3d6b45] rounded-3xl p-8 text-white flex flex-col gap-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                    <Check className="w-6 h-6 text-white" strokeWidth={3} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Appointment Request Sent!</h3>
+                    <p className="text-white/80 text-sm mt-1 leading-relaxed">
+                      Your request for <strong>{gardener.name}</strong> has been sent.
+                      The gardener will confirm the schedule shortly.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate('/appointments')}
+                    className="mt-2 w-fit bg-white text-[#3d6b45] px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition-colors"
+                  >
+                    View My Appointments
+                  </button>
                 </div>
               )}
             </div>
@@ -228,6 +265,116 @@ export default function GardenerView() {
         </div>
       </div>
       <Footer />
+
+      {/* ── Booking Modal ── */}
+      {modalOpen && selectedService && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setModalOpen(false); }}
+        >
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 flex flex-col gap-6 animate-in fade-in zoom-in duration-200">
+
+            {/* Modal Header */}
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Book Appointment</h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  {selectedService.name} with <span className="text-[#3d6b45] font-semibold">{gardener.name}</span>
+                </p>
+              </div>
+              <button onClick={() => setModalOpen(false)} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Service Summary */}
+            <div className="bg-[#f0f4ee] rounded-2xl p-4 flex items-center justify-between border border-[#c8d9c0]">
+              <div>
+                <p className="text-xs text-gray-500 font-medium">{selectedService.category}</p>
+                <p className="font-bold text-gray-900">{selectedService.name}</p>
+                <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                  <Clock className="w-3 h-3" /> {selectedService.duration}
+                </p>
+              </div>
+              <p className="text-2xl font-black text-[#3d6b45] flex items-center gap-0.5">
+                <IndianRupee className="w-5 h-5" />{selectedService.price}
+              </p>
+            </div>
+
+            {/* Date */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-gray-700">Preferred Date</label>
+              <input
+                type="date"
+                min={today}
+                value={form.date}
+                onChange={(e) => { setForm(f => ({ ...f, date: e.target.value })); setErrors(er => ({ ...er, date: undefined })); }}
+                className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors focus:border-[#3d6b45] focus:ring-2 focus:ring-[#f0f4ee] ${errors.date ? "border-red-300" : "border-[#c8d9c0]"}`}
+              />
+              {errors.date && <p className="text-xs text-red-500">{errors.date}</p>}
+            </div>
+
+            {/* Time Slot */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-gray-700">Preferred Time</label>
+              <div className="grid grid-cols-5 gap-2">
+                {TIME_SLOTS.map(slot => (
+                  <button
+                    key={slot}
+                    onClick={() => { setForm(f => ({ ...f, time: slot })); setErrors(er => ({ ...er, time: undefined })); }}
+                    className={`py-2 rounded-xl text-xs font-semibold border transition-all ${
+                      form.time === slot
+                        ? "bg-[#3d6b45] text-white border-[#3d6b45]"
+                        : "bg-white border-[#c8d9c0] text-gray-600 hover:border-[#3d6b45] hover:text-[#3d6b45]"
+                    }`}
+                  >
+                    {slot}
+                  </button>
+                ))}
+              </div>
+              {errors.time && <p className="text-xs text-red-500">{errors.time}</p>}
+            </div>
+
+            {/* Location */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-gray-700">Your Address</label>
+              <input
+                type="text"
+                placeholder="e.g. 12 Park Street, Bandra West, Mumbai"
+                value={form.location}
+                onChange={(e) => { setForm(f => ({ ...f, location: e.target.value })); setErrors(er => ({ ...er, location: undefined })); }}
+                className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors focus:border-[#3d6b45] focus:ring-2 focus:ring-[#f0f4ee] ${errors.location ? "border-red-300" : "border-[#c8d9c0]"}`}
+              />
+              {errors.location && <p className="text-xs text-red-500">{errors.location}</p>}
+            </div>
+
+            {/* Note */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-gray-700">Note <span className="text-gray-400 font-normal">(optional)</span></label>
+              <textarea
+                rows={3}
+                placeholder="Any special instructions for the gardener..."
+                value={form.note}
+                onChange={(e) => setForm(f => ({ ...f, note: e.target.value }))}
+                className="w-full border border-[#c8d9c0] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#3d6b45] focus:ring-2 focus:ring-[#f0f4ee] transition-colors resize-none"
+              />
+            </div>
+
+            {/* Submit */}
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="w-full bg-[#3d6b45] hover:bg-[#345c3c] text-white font-bold py-3.5 rounded-2xl text-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#3d6b45]/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {submitting ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Sending Request...</>
+              ) : (
+                <><Calendar className="w-4 h-4" /> Confirm Appointment</>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
