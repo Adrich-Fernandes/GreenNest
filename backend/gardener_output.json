@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "69c8efeeaf73202ccb543223",
+      "clerkId": "user_3BXF2H3fT8FDkYZKy6OqxDGVfIP",
+      "name": "New Gardener",
+      "email": "gardener@greennest.com",
+      "services": [
+        {
+          "name": "qwertyuio",
+          "category": "Lawn Maintenance",
+          "price": 12345,
+          "duration": "2 hours",
+          "desc": "qwertyuiokjhgfdsazxcvbnm,iouytrdfghjn",
+          "active": false,
+          "_id": "69c8f026af73202ccb543225"
+        }
+      ],
+      "rating": 0,
+      "status": "active",
+      "appointments": [],
+      "createdAt": "2026-03-29T09:25:02.519Z",
+      "__v": 0
+    }
+  ]
+}
