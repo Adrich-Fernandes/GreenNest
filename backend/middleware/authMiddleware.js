@@ -58,6 +58,7 @@ const isUser = (req, res, next) => {
 // Middleware for strict professional gardener only access
 const isGardener = (req, res, next) => {
   const role = (req.user?.role || "").toLowerCase().trim();
+  console.log(`[isGardener] User: ${req.user?.email}, Role in DB: '${req.user?.role}', Evaluated as: '${role}'`);
   if (role === "gardener" || role === "gardner") {
     next();
   } else {

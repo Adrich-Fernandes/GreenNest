@@ -7,11 +7,11 @@ const getGardenerData = async (req, res) => {
     let gardener = await Gardener.findOne({ clerkId });
 
     if (!gardener) {
-      // Auto-create basic profile if it doesn't exist (similar to UserSync)
+      // Auto-create basic profile using real details from the User collection
       gardener = await Gardener.create({
         clerkId,
-        name: "New Gardener",
-        email: "gardener@greennest.com", // Temporary placeholder
+        name: req.user.name || req.user.firstName || "Gardener",
+        email: req.user.email,
         services: [],
         appointments: []
       });

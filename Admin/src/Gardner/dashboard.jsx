@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import {
   Calendar, Clock, MapPin, User, Check, X, ChevronDown,
   Bell, Leaf, Plus, Pencil, Trash2, PauseCircle, PlayCircle,
@@ -163,6 +163,7 @@ const timeSlots = [
 
 export default function GardnerAppointments() {
   const { user, isLoaded: userLoaded } = useUser();
+  const { getToken } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -196,7 +197,10 @@ export default function GardnerAppointments() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch(`${API_BASE}/${user.id}`);
+      const token = await getToken();
+      const res = await fetch(`${API_BASE}/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const result = await res.json();
       if (result.success) {
         setServices(result.data.services || []);
@@ -211,9 +215,13 @@ export default function GardnerAppointments() {
 
   const syncServicesToBackend = async (newServices) => {
     try {
+      const token = await getToken();
       const res = await fetch(`${API_BASE}/sync-services`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ clerkId: user.id, services: newServices }),
       });
       return await res.json();
@@ -224,9 +232,13 @@ export default function GardnerAppointments() {
 
   const updateApptStatusOnBackend = async (payload) => {
     try {
+      const token = await getToken();
       const res = await fetch(`${API_BASE}/appointment-status`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ clerkId: user.id, ...payload }),
       });
       return await res.json();
@@ -338,8 +350,13 @@ export default function GardnerAppointments() {
     }
 
     const res = await syncServicesToBackend(newServices);
-    if (res?.success) setServices(res.data);
-    closeModal();
+    if (res?.success) {
+      setServices(res.data);
+      closeModal();
+    } else {
+      console.error("Failed to save service:", res);
+      alert(`Failed to save service: ${res?.message || "Unknown error"}`);
+    }
   };
 
   const handleFormChange = (field, value) => {
