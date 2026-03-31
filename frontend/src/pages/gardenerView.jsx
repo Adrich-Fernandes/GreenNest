@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, MapPin, Clock, ArrowLeft, Calendar, User, Check, ShieldCheck, X, IndianRupee } from 'lucide-react';
+import { Star, MapPin, Clock, ArrowLeft, Calendar, User, Check, ShieldCheck, X, IndianRupee, Tag } from 'lucide-react';
 import UserNavBar from '../components/userNavBar';
 import Footer from '../components/footer';
 import { useUser, useAuth, SignInButton } from '@clerk/clerk-react';
@@ -23,8 +23,7 @@ export default function GardenerView() {
 
   // Booking modal state
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState(null);
-  const [form, setForm] = useState({ date: "", time: "", location: "", note: "" });
+  const [form, setForm] = useState({ date: "", time: "", location: "", serviceRequired: "", note: "" });
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -44,16 +43,16 @@ export default function GardenerView() {
     }
   };
 
-  const openBookingModal = (service) => {
+  const openBookingModal = () => {
     if (!isSignedIn) return;
-    setSelectedService(service);
-    setForm({ date: "", time: "", location: "", note: "" });
+    setForm({ date: "", time: "", location: "", serviceRequired: "", note: "" });
     setErrors({});
     setModalOpen(true);
   };
 
   const validate = () => {
     const e = {};
+    if (!form.serviceRequired) e.serviceRequired = "Please select what you need done";
     if (!form.date) e.date = "Please select a date";
     if (!form.time) e.time = "Please select a time slot";
     if (!form.location.trim()) e.location = "Please enter your address";
@@ -77,10 +76,9 @@ export default function GardenerView() {
           gardenerId: gardener._id,
           userId: user.id,
           customerName: user.fullName || user.firstName || "Customer",
-          serviceName: selectedService.name,
-          service: selectedService.name,
-          price: selectedService.price,
-          duration: selectedService.duration,
+          serviceRequired: form.serviceRequired,
+          price: gardener.basePrice,
+          duration: "1 hour", // default duration for base profile bookings
           date: form.date,
           time: form.time,
           location: form.location.trim(),
@@ -161,13 +159,6 @@ export default function GardenerView() {
                   </div>
                 </div>
 
-                <div className="w-full text-left">
-                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">About Gardener</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed font-medium">
-                    {gardener.bio || "No description provided."}
-                  </p>
-                </div>
-
                 <div className="w-full flex items-center gap-2 p-3 bg-green-50 rounded-2xl border border-green-100">
                   <ShieldCheck className="w-5 h-5 text-green-600" />
                   <span className="text-xs font-semibold text-green-700">Verified GreenNest Professional</span>
@@ -175,68 +166,66 @@ export default function GardenerView() {
               </div>
             </div>
 
-            {/* Services & Booking */}
+            {/* Details & Booking */}
             <div className="lg:col-span-2 flex flex-col gap-8">
               <div className="bg-white rounded-3xl p-8 border border-[#e8ede6] shadow-sm flex flex-col gap-8">
+                
+                {/* About Section */}
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Available Services</h2>
-                  <p className="text-sm text-gray-400 mt-1">Select a service to request an appointment</p>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">About {gardener.name}</h3>
+                  <p className="text-gray-600 leading-relaxed font-medium">
+                    {gardener.bio || "No description provided."}
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                  {(gardener.services || []).filter(s => s.active !== false).map((service, idx) => (
-                    <div key={idx} className="group p-5 bg-white border border-[#e8ede6] rounded-2xl flex items-center justify-between hover:border-[#3d6b45] hover:bg-[#f7f9f6] transition-all">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs font-bold text-[#3d6b45] bg-[#f0f4ee] px-2.5 py-1 rounded-lg w-fit mb-1">
-                          {service.category}
-                        </span>
-                        <h4 className="text-base font-bold text-gray-900">{service.name}</h4>
-                        <p className="text-xs text-gray-400 font-medium flex items-center gap-1.5">
-                          <Clock className="w-3 h-3" /> {service.duration || "Self-timed"}
-                        </p>
-                        {service.desc && (
-                          <p className="text-xs text-gray-400 mt-1 max-w-xs line-clamp-2">{service.desc}</p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-6 shrink-0">
-                        <div className="text-right">
-                          <p className="text-xl font-black text-gray-900 flex items-center gap-0.5">
-                            <IndianRupee className="w-4 h-4" />{service.price}
-                          </p>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">per visit</p>
+                {/* Specialties */}
+                {gardener.specialties && gardener.specialties.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Areas of Expertise</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {gardener.specialties.map((spec, idx) => (
+                        <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f0f4ee] border border-[#c8d9c0] rounded-xl text-sm font-semibold text-[#3d6b45]">
+                          <Tag className="w-3.5 h-3.5" />
+                          {spec}
                         </div>
-
-                        {isSignedIn ? (
-                          <button
-                            disabled={booked}
-                            onClick={() => openBookingModal(service)}
-                            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
-                              booked
-                                ? "bg-green-100 text-green-600 cursor-default"
-                                : "bg-[#3d6b45] hover:bg-[#345c3c] text-white hover:scale-105 active:scale-95 shadow-sm"
-                            }`}
-                          >
-                            {booked ? <><Check className="w-4 h-4" /> Booked</> : <><Calendar className="w-4 h-4" /> Book Now</>}
-                          </button>
-                        ) : (
-                          <SignInButton mode="modal">
-                            <button className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-[#3d6b45] hover:bg-[#345c3c] text-white transition-all hover:scale-105">
-                              <Calendar className="w-4 h-4" /> Login to Book
-                            </button>
-                          </SignInButton>
-                        )}
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                )}
 
-                  {(!gardener.services || gardener.services.filter(s => s.active !== false).length === 0) && (
-                    <div className="py-12 border-2 border-dashed border-[#e8ede6] rounded-3xl flex flex-col items-center justify-center text-gray-400 gap-2">
-                      <Calendar className="w-8 h-8 opacity-20" />
-                      <p className="font-medium">No services listed yet.</p>
+                {/* Booking Call to Action */}
+                <div className="p-6 bg-[#f7f9f6] border border-[#e8ede6] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div>
+                    <p className="text-sm font-bold tracking-widest text-[#3d6b45] uppercase mb-1">Base Rate</p>
+                    <div className="flex flex-col">
+                      <span className="text-3xl font-black text-gray-900 flex items-center gap-0.5">
+                        <IndianRupee className="w-6 h-6" />{gardener.basePrice || 0}
+                      </span>
+                      <span className="text-xs font-bold text-gray-400">per hour</span>
                     </div>
+                  </div>
+
+                  {isSignedIn ? (
+                    <button
+                      disabled={booked}
+                      onClick={openBookingModal}
+                      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold transition-all ${
+                        booked
+                          ? "bg-green-100 text-green-600 cursor-default"
+                          : "bg-[#3d6b45] hover:bg-[#345c3c] text-white hover:scale-105 active:scale-95 shadow-lg shadow-[#3d6b45]/20"
+                      }`}
+                    >
+                      {booked ? <><Check className="w-5 h-5" /> Request Sent</> : <><Calendar className="w-5 h-5" /> Book Appointment</>}
+                    </button>
+                  ) : (
+                    <SignInButton mode="modal">
+                      <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold bg-[#3d6b45] hover:bg-[#345c3c] text-white transition-all hover:scale-105 shadow-lg shadow-[#3d6b45]/20">
+                        <User className="w-5 h-5" /> Login to Book
+                      </button>
+                    </SignInButton>
                   )}
                 </div>
+
               </div>
 
               {/* Booking Success Banner */}
@@ -267,7 +256,7 @@ export default function GardenerView() {
       <Footer />
 
       {/* ── Booking Modal ── */}
-      {modalOpen && selectedService && (
+      {modalOpen && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={(e) => { if (e.target === e.currentTarget) setModalOpen(false); }}
@@ -277,9 +266,9 @@ export default function GardenerView() {
             {/* Modal Header */}
             <div className="flex items-start justify-between">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Book Appointment</h2>
+                <h2 className="text-xl font-bold text-gray-900">Book Gardener</h2>
                 <p className="text-sm text-gray-400 mt-1">
-                  {selectedService.name} with <span className="text-[#3d6b45] font-semibold">{gardener.name}</span>
+                  Request an appointment with <span className="text-[#3d6b45] font-semibold">{gardener.name}</span>
                 </p>
               </div>
               <button onClick={() => setModalOpen(false)} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 transition-colors">
@@ -287,18 +276,22 @@ export default function GardenerView() {
               </button>
             </div>
 
-            {/* Service Summary */}
-            <div className="bg-[#f0f4ee] rounded-2xl p-4 flex items-center justify-between border border-[#c8d9c0]">
-              <div>
-                <p className="text-xs text-gray-500 font-medium">{selectedService.category}</p>
-                <p className="font-bold text-gray-900">{selectedService.name}</p>
-                <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                  <Clock className="w-3 h-3" /> {selectedService.duration}
-                </p>
-              </div>
-              <p className="text-2xl font-black text-[#3d6b45] flex items-center gap-0.5">
-                <IndianRupee className="w-5 h-5" />{selectedService.price}
-              </p>
+            {/* Service Type Selection */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-gray-700">What do you need help with?</label>
+              <select
+                value={form.serviceRequired}
+                onChange={(e) => { setForm(f => ({ ...f, serviceRequired: e.target.value })); setErrors(er => ({ ...er, serviceRequired: undefined })); }}
+                className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors focus:border-[#3d6b45] focus:ring-2 focus:ring-[#f0f4ee] bg-white ${errors.serviceRequired ? "border-red-300" : "border-[#c8d9c0]"}`}
+              >
+                <option value="">Select a service category</option>
+                <option value="General Gardening">General Gardening</option>
+                {gardener.specialties && gardener.specialties.map(spec => (
+                  <option key={spec} value={spec}>{spec}</option>
+                ))}
+                <option value="Other">Other (Please specify in notes)</option>
+              </select>
+              {errors.serviceRequired && <p className="text-xs text-red-500">{errors.serviceRequired}</p>}
             </div>
 
             {/* Date */}
@@ -350,10 +343,13 @@ export default function GardenerView() {
 
             {/* Note */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">Note <span className="text-gray-400 font-normal">(optional)</span></label>
+              <label className="text-sm font-semibold text-gray-700 flex justify-between">
+                <span>Task Description</span> 
+                <span className="text-gray-400 font-normal">Optional</span>
+              </label>
               <textarea
-                rows={3}
-                placeholder="Any special instructions for the gardener..."
+                rows={2}
+                placeholder="Briefly describe what needs to be done..."
                 value={form.note}
                 onChange={(e) => setForm(f => ({ ...f, note: e.target.value }))}
                 className="w-full border border-[#c8d9c0] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#3d6b45] focus:ring-2 focus:ring-[#f0f4ee] transition-colors resize-none"
@@ -364,7 +360,7 @@ export default function GardenerView() {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="w-full bg-[#3d6b45] hover:bg-[#345c3c] text-white font-bold py-3.5 rounded-2xl text-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#3d6b45]/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-[#3d6b45] hover:bg-[#345c3c] text-white font-bold py-3.5 rounded-2xl text-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#3d6b45]/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
             >
               {submitting ? (
                 <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Sending Request...</>

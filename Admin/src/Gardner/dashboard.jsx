@@ -3,142 +3,21 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import {
   Calendar, Clock, MapPin, User, Check, X, ChevronDown,
-  Bell, Leaf, Plus, Pencil, Trash2, PauseCircle, PlayCircle,
-  Tag, IndianRupee,
+  Bell, Leaf, Save, IndianRupee, Phone, FileText, Pickaxe
 } from "lucide-react";
 import GardenerNavBar from "../components/GardenerNavBar";
 
-// ─── Appointments Data ───────────────────────────────────────────────────────
+// ─── Specialties Data ────────────────────────────────────────────────────────────
 
-const initialAppointments = [
-  {
-    id: 1,
-    customer: "Ananya Mehta",
-    location: "Bandra West, Mumbai",
-    service: "Home Gardening",
-    date: "2026-03-25",
-    time: "10:00 AM",
-    duration: "2 hours",
-    note: "Need help setting up a small terrace garden with pots.",
-    status: "Pending",
-  },
-  {
-    id: 2,
-    customer: "Rohan Verma",
-    location: "Lajpat Nagar, Delhi",
-    service: "Lawn Maintenance",
-    date: "2026-03-26",
-    time: "09:00 AM",
-    duration: "3 hours",
-    note: "Monthly lawn mowing and trimming.",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    customer: "Sneha Iyer",
-    location: "Koramangala, Bangalore",
-    service: "Plant Care & Pruning",
-    date: "2026-03-27",
-    time: "11:00 AM",
-    duration: "1.5 hours",
-    note: "Pruning and health check for indoor plants.",
-    status: "Accepted",
-  },
-  {
-    id: 4,
-    customer: "Karan Patel",
-    location: "Powai, Mumbai",
-    service: "Home Gardening",
-    date: "2026-03-28",
-    time: "02:00 PM",
-    duration: "2 hours",
-    note: "Setting up a kitchen herb garden.",
-    status: "Completed",
-  },
-  {
-    id: 5,
-    customer: "Divya Nair",
-    location: "T Nagar, Chennai",
-    service: "Lawn Maintenance",
-    date: "2026-03-29",
-    time: "08:00 AM",
-    duration: "2.5 hours",
-    note: "Full garden cleanup after monsoon.",
-    status: "Canceled",
-  },
-  {
-    id: 6,
-    customer: "Vikram Shah",
-    location: "Andheri East, Mumbai",
-    service: "Landscaping",
-    date: "2026-03-30",
-    time: "04:00 PM",
-    duration: "4 hours",
-    note: "Consultation for a new garden layout.",
-    status: "Rescheduled",
-  },
+const SPECIALTIES = [
+  "Lawn Maintenance",
+  "Home Gardening",
+  "Landscaping",
+  "Plant Care & Pruning",
+  "Irrigation Setup",
+  "Pest Control",
+  "Seasonal Cleanup",
 ];
-
-// ─── Services Data ────────────────────────────────────────────────────────────
-
-const CATEGORY_ICONS = {
-  "Lawn Maintenance": "🌿",
-  "Home Gardening": "🪴",
-  "Landscaping": "🏡",
-  "Plant Care & Pruning": "✂️",
-  "Irrigation Setup": "💧",
-  "Pest Control": "🐛",
-  "Seasonal Cleanup": "🍂",
-  "Other": "🌱",
-};
-
-const CATEGORIES = Object.keys(CATEGORY_ICONS);
-
-const DURATIONS = [
-  "1 hour", "1.5 hours", "2 hours", "2.5 hours",
-  "3 hours", "4 hours", "Half day", "Full day",
-];
-
-const initialServices = [
-  {
-    id: 1,
-    name: "Lawn Mowing & Trimming",
-    category: "Lawn Maintenance",
-    price: 800,
-    duration: "2 hours",
-    desc: "Complete lawn mowing, edge trimming, and cleanup of grass clippings.",
-    active: true,
-  },
-  {
-    id: 2,
-    name: "Terrace Garden Setup",
-    category: "Home Gardening",
-    price: 2500,
-    duration: "4 hours",
-    desc: "Design and setup of a beautiful terrace garden with pots, soil, and plants.",
-    active: true,
-  },
-  {
-    id: 3,
-    name: "Indoor Plant Care",
-    category: "Plant Care & Pruning",
-    price: 600,
-    duration: "1.5 hours",
-    desc: "Health check, pruning, repotting, and fertilising of indoor plants.",
-    active: true,
-  },
-  {
-    id: 4,
-    name: "Garden Landscape Design",
-    category: "Landscaping",
-    price: 5000,
-    duration: "Full day",
-    desc: "Full consultation and implementation of a custom garden landscape layout.",
-    active: false,
-  },
-];
-
-const emptyForm = { name: "", category: "", price: "", duration: "2 hours", desc: "" };
 
 // ─── Appointment constants ────────────────────────────────────────────────────
 
@@ -167,26 +46,30 @@ export default function GardnerAppointments() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Page-level tab: "appointments" | "services"
-  const page = location.pathname.includes("/services") ? "services" : "appointments";
+  // Page-level tab: "appointments" | "profile"
+  const page = location.pathname.includes("/profile") || location.pathname.includes("/services") ? "profile" : "appointments";
 
   // ── Dashboard state ──
   const [loading, setLoading] = useState(true);
   const [appointments, setAppointments] = useState([]);
-  const [services, setServices] = useState([]);
+  
+  // ── Profile state ──
+  const [profile, setProfile] = useState({
+    bio: "",
+    basePrice: 0,
+    location: "",
+    phone: "",
+    experience: "",
+    specialties: []
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+  
   const [activeTab, setActiveTab] = useState("All");
   const [editingId, setEditingId] = useState(null);
   const [editDate, setEditDate] = useState("");
   const [editTime, setEditTime] = useState("");
   const [timeDropdownOpen, setTimeDropdownOpen] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
-
-  // ── Service state ──
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingServiceId, setEditingServiceId] = useState(null);
-  const [form, setForm] = useState(emptyForm);
-  const [errors, setErrors] = useState({});
-  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
   const API_BASE = "http://localhost:8000/api/gardener";
 
@@ -203,8 +86,15 @@ export default function GardnerAppointments() {
       });
       const result = await res.json();
       if (result.success) {
-        setServices(result.data.services || []);
         setAppointments(result.data.appointments || []);
+        setProfile({
+          bio: result.data.bio || "",
+          basePrice: result.data.basePrice || 0,
+          location: result.data.location || "",
+          phone: result.data.phone || "",
+          experience: result.data.experience || "",
+          specialties: result.data.specialties || []
+        });
       }
     } catch (err) {
       console.error("Failed to fetch gardener data:", err);
@@ -213,20 +103,29 @@ export default function GardnerAppointments() {
     }
   };
 
-  const syncServicesToBackend = async (newServices) => {
+  const updateProfileBackend = async () => {
+    setSavingProfile(true);
     try {
       const token = await getToken();
-      const res = await fetch(`${API_BASE}/sync-services`, {
+      const res = await fetch(`${API_BASE}/update-profile`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ clerkId: user.id, services: newServices }),
+        body: JSON.stringify({ clerkId: user.id, ...profile }),
       });
-      return await res.json();
+      const result = await res.json();
+      if (result.success) {
+        alert("Profile saved successfully!");
+      } else {
+        alert("Failed to save profile: " + result.message);
+      }
     } catch (err) {
       console.error("Sync failed:", err);
+      alert("Failed to save profile.");
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -289,99 +188,20 @@ export default function GardnerAppointments() {
     setEditingId(null);
   };
 
-  // ── Service helpers ──
-  const serviceCounts = {
-    total: services.length,
-    active: services.filter((s) => s.active).length,
-    paused: services.filter((s) => !s.active).length,
-  };
-
-  const openAdd = () => {
-    setEditingServiceId(null);
-    setForm(emptyForm);
-    setErrors({});
-    setModalOpen(true);
-  };
-
-  const openEdit = (service) => {
-    setEditingServiceId(service._id);
-    setForm({
-      name: service.name,
-      category: service.category,
-      price: String(service.price),
-      duration: service.duration,
-      desc: service.desc,
-    });
-    setErrors({});
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-    setEditingServiceId(null);
-  };
-
-  const validate = () => {
-    const e = {};
-    if (!form.name.trim()) e.name = "Service name is required";
-    if (!form.category) e.category = "Please select a category";
-    if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0)
-      e.price = "Enter a valid price";
-    return e;
-  };
-
-  const handleSaveService = async () => {
-    const e = validate();
-    if (Object.keys(e).length > 0) { setErrors(e); return; }
-    
-    const payload = {
-      name: form.name.trim(),
-      category: form.category,
-      price: Number(form.price),
-      duration: form.duration,
-      desc: form.desc.trim(),
-    };
-
-    let newServices;
-    if (editingServiceId) {
-      newServices = services.map((s) => s._id === editingServiceId ? { ...s, ...payload } : s);
-    } else {
-      newServices = [...services, { ...payload, active: true }];
-    }
-
-    const res = await syncServicesToBackend(newServices);
-    if (res?.success) {
-      setServices(res.data);
-      closeModal();
-    } else {
-      console.error("Failed to save service:", res);
-      alert(`Failed to save service: ${res?.message || "Unknown error"}`);
-    }
-  };
-
-  const handleFormChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
-  };
-
-  const handleToggleService = async (id) => {
-    const newServices = services.map((s) => s._id === id ? { ...s, active: !s.active } : s);
-    const res = await syncServicesToBackend(newServices);
-    if (res?.success) setServices(res.data);
-  };
-
-  const handleDeleteService = async (id) => {
-    const newServices = services.filter((s) => s._id !== id);
-    const res = await syncServicesToBackend(newServices);
-    if (res?.success) {
-      setServices(res.data);
-      setDeleteConfirmId(null);
-    }
-  };
-
   const handleMarkComplete = async (id) => {
     const res = await updateApptStatusOnBackend({ appointmentId: id, status: "Completed" });
     if (res?.success) setAppointments(res.data);
+  };
+
+  // ── Profile helpers ──
+  const toggleSpecialty = (spec) => {
+    setProfile(prev => {
+      if (prev.specialties.includes(spec)) {
+        return { ...prev, specialties: prev.specialties.filter(s => s !== spec) };
+      } else {
+        return { ...prev, specialties: [...prev.specialties, spec] };
+      }
+    });
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -407,34 +227,34 @@ export default function GardnerAppointments() {
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-              {page === "appointments" ? "My Appointments" : "My Services"}
+              {page === "appointments" ? "My Appointments" : "My Profile"}
             </h1>
             <p className="text-sm text-gray-400 mt-1">
               {page === "appointments"
                 ? "Manage and respond to your service requests"
-                : "Manage the services you offer to customers"}
+                : "Manage your professional profile and rates"}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {/* Page switcher */}
             <div className="flex bg-white border border-[#c8d9c0] rounded-xl overflow-hidden">
-              {["appointments", "services"].map((p) => (
+              {["appointments", "profile"].map((p) => (
                 <button
                   key={p}
-                  onClick={() => navigate(p === "appointments" ? "/gardener/dashboard" : "/gardener/services")}
+                  onClick={() => navigate(p === "appointments" ? "/gardener/dashboard" : "/gardener/profile")}
                   className={`px-4 py-2 text-sm font-semibold transition-colors capitalize ${
                     page === p
                       ? "bg-[#3d6b45] text-white"
                       : "text-gray-500 hover:text-[#3d6b45]"
                   }`}
                 >
-                  {p === "appointments" ? "Appointments" : "My Services"}
+                  {p === "appointments" ? "Appointments" : "Profile"}
                 </button>
               ))}
             </div>
 
-            {page === "appointments" ? (
+            {page === "appointments" && (
               <div className="relative">
                 <button className="relative p-2.5 bg-white border border-[#c8d9c0] rounded-xl text-gray-400 hover:text-[#3d6b45] hover:border-[#3d6b45] transition-colors">
                   <Bell className="w-5 h-5" />
@@ -445,13 +265,6 @@ export default function GardnerAppointments() {
                   )}
                 </button>
               </div>
-            ) : (
-              <button
-                onClick={openAdd}
-                className="flex items-center gap-2 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-all hover:scale-105 active:scale-95"
-              >
-                <Plus className="w-4 h-4" /> Add Service
-              </button>
             )}
           </div>
         </div>
@@ -530,25 +343,30 @@ export default function GardnerAppointments() {
                           </span>
                         </div>
                         <p className="text-sm text-[#3d6b45] font-medium mt-0.5 flex items-center gap-1.5">
-                          <Leaf className="w-3.5 h-3.5" /> {appt.service}
+                          <Leaf className="w-3.5 h-3.5" /> {appt.serviceRequired}
                         </p>
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => setExpandedId(expandedId === appt.id ? null : appt.id)}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-[#3d6b45] bg-[#f7f9f6] px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-[#c8d9c0]"
-                    >
-                      {expandedId === appt.id ? "Minimize" : "Details"}
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${expandedId === appt.id ? "rotate-180" : ""}`} />
-                    </button>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="font-black text-gray-900 text-lg flex items-center">
+                        <IndianRupee className="w-4 h-4" />{appt.price}
+                      </span>
+                      <button
+                        onClick={() => setExpandedId(expandedId === appt._id ? null : appt._id)}
+                        className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-[#3d6b45] transition-colors"
+                      >
+                        {expandedId === appt._id ? "Minimize details" : "View details"}
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${expandedId === appt._id ? "rotate-180" : ""}`} />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Info Row */}
                   <div className="px-6 pb-5 flex flex-wrap gap-6 border-b border-[#f0f4ee]/50">
                     <div className="flex items-center gap-2 text-gray-600 text-sm">
                       <Calendar className="w-4 h-4 text-[#3d6b45]" />
-                      {editingId === appt.id ? (
+                      {editingId === appt._id ? (
                         <input
                           type="date"
                           value={editDate}
@@ -565,7 +383,7 @@ export default function GardnerAppointments() {
 
                     <div className="flex items-center gap-2 text-gray-600 text-sm">
                       <Clock className="w-4 h-4 text-[#3d6b45]" />
-                      {editingId === appt.id ? (
+                      {editingId === appt._id ? (
                         <div className="relative">
                           <button
                             onClick={() => setTimeDropdownOpen(!timeDropdownOpen)}
@@ -604,22 +422,22 @@ export default function GardnerAppointments() {
                   </div>
 
                   {/* Expanded Details */}
-                  {expandedId === appt.id && (
+                  {expandedId === appt._id && (
                     <div className="px-6 py-4 bg-[#fcfdfc] border-b border-[#f0f4ee]/50">
                       <div className="bg-white border border-[#e8ede6] rounded-xl p-4 shadow-sm">
                         <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2">Customer Note</p>
-                        <p className="text-sm text-gray-600 leading-relaxed italic">"{appt.note}"</p>
+                        <p className="text-sm text-gray-600 leading-relaxed italic">"{appt.note || "No note provided."}"</p>
                       </div>
                     </div>
                   )}
 
                   {/* Action Buttons */}
-                  {(appt.status === "Pending" || appt.status === "Accepted" || appt.status === "Rescheduled" || editingId === appt.id) && (
+                  {(appt.status === "Pending" || appt.status === "Accepted" || appt.status === "Rescheduled" || editingId === appt._id) && (
                     <div className="px-6 py-4 flex flex-wrap gap-2">
-                      {editingId === appt.id ? (
+                      {editingId === appt._id ? (
                         <>
                           <button
-                            onClick={() => handleSaveReschedule(appt.id)}
+                            onClick={() => handleSaveReschedule(appt._id)}
                             className="flex items-center gap-2 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-5 py-2 rounded-xl transition-all hover:scale-105"
                           >
                             <Check className="w-4 h-4" /> Save
@@ -674,257 +492,133 @@ export default function GardnerAppointments() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════════════
-            SERVICES VIEW
+            PROFILE VIEW
         ══════════════════════════════════════════════════════════════════════ */}
-        {page === "services" && (
-          <>
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: "Total Services", count: serviceCounts.total, color: "text-[#3d6b45]", bg: "bg-[#f0f4ee] border-[#c8d9c0]" },
-                { label: "Active", count: serviceCounts.active, color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
-                { label: "Paused", count: serviceCounts.paused, color: "text-blue-600", bg: "bg-blue-50 border-blue-200" },
-              ].map((stat) => (
-                <div key={stat.label} className={`rounded-2xl border px-5 py-4 flex flex-col gap-1 transition-all hover:shadow-sm ${stat.bg}`}>
-                  <span className={`text-2xl font-bold ${stat.color}`}>{stat.count}</span>
-                  <span className="text-xs text-gray-500 font-medium">{stat.label}</span>
-                </div>
-              ))}
+        {page === "profile" && (
+          <div className="bg-white rounded-3xl border border-[#e8ede6] shadow-sm overflow-hidden">
+            <div className="px-8 py-6 border-b border-[#f0f4ee] bg-[#fcfdfc] flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Professional Details</h2>
+                <p className="text-sm text-gray-500 mt-1">This information is shown to customers on your public page.</p>
+              </div>
             </div>
 
-            {/* Service List */}
-            <div className="flex flex-col gap-4">
-              {services.length === 0 && (
-                <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-[#c8d9c0] text-gray-400">
-                  <Leaf className="w-10 h-10 mx-auto text-[#c8d9c0] mb-3 opacity-50" />
-                  <p className="text-lg font-semibold text-gray-900">No services yet</p>
-                  <p className="text-sm mt-1">Click "Add Service" to list your first offering</p>
-                </div>
-              )}
-
-              {services.map((service) => (
-                <div
-                  key={service._id}
-                  className="bg-white rounded-2xl border border-[#e8ede6] shadow-sm hover:shadow-md transition-shadow overflow-hidden"
-                >
-                  <div className="px-6 py-5 flex items-center gap-4">
-                    {/* Icon */}
-                    <div className="w-12 h-12 bg-[#f0f4ee] border border-[#c8d9c0]/40 rounded-2xl flex items-center justify-center shrink-0 text-2xl">
-                      {CATEGORY_ICONS[service.category] || "🌱"}
+            <div className="p-8 flex flex-col gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                {/* Contact Info */}
+                <div className="flex flex-col gap-4">
+                  <h3 className="text-sm font-bold text-gray-900 border-b border-[#f0f4ee] pb-2">Contact & Location</h3>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Location</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={profile.location}
+                        onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                        placeholder="e.g. Bandra West, Mumbai"
+                        className="w-full pl-9 pr-4 py-2.5 bg-[#f7f9f6] border border-[#e8ede6] rounded-xl text-sm outline-none focus:bg-white focus:border-[#3d6b45] transition-colors"
+                      />
                     </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-bold text-gray-900 text-base">{service.name}</h3>
-                        <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md border ${
-                          service.active
-                            ? "bg-[#f0f4ee] text-[#3d6b45] border-[#c8d9c0]"
-                            : "bg-amber-50 text-amber-700 border-amber-200"
-                        }`}>
-                          {service.active ? "Active" : "Paused"}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-4 mt-2">
-                        <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                          <Tag className="w-3.5 h-3.5 text-[#3d6b45]" />
-                          {service.category}
-                        </span>
-                        <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                          <Clock className="w-3.5 h-3.5 text-[#3d6b45]" />
-                          {service.duration}
-                        </span>
-                        <span className="flex items-center gap-1.5 text-sm font-bold text-[#3d6b45]">
-                          <IndianRupee className="w-3.5 h-3.5" />
-                          {service.price.toLocaleString("en-IN")}
-                        </span>
-                      </div>
-
-                      {service.desc && (
-                        <p className="text-sm text-gray-400 mt-1.5 leading-relaxed line-clamp-2">
-                          {service.desc}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => handleToggleService(service._id)}
-                        title={service.active ? "Pause service" : "Activate service"}
-                        className="p-2 rounded-xl border border-[#e8ede6] text-gray-400 hover:text-[#3d6b45] hover:border-[#c8d9c0] hover:bg-[#f0f4ee] transition-all"
-                      >
-                        {service.active
-                          ? <PauseCircle className="w-4 h-4" />
-                          : <PlayCircle className="w-4 h-4" />
-                        }
-                      </button>
-
-                      <button
-                        onClick={() => openEdit(service)}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border border-[#c8d9c0] text-[#3d6b45] bg-[#f7f9f6] hover:bg-[#f0f4ee] hover:border-[#3d6b45] transition-all"
-                      >
-                        <Pencil className="w-3.5 h-3.5" /> Edit
-                      </button>
-
-                      {deleteConfirmId === service._id ? (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-red-500 font-semibold">Sure?</span>
-                          <button
-                            onClick={() => handleDeleteService(service._id)}
-                            className="p-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirmId(null)}
-                            className="p-1.5 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 transition-colors"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setDeleteConfirmId(service._id)}
-                          className="p-2 rounded-xl border border-red-100 text-red-400 hover:bg-red-50 hover:border-red-200 transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Phone</label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="tel"
+                        value={profile.phone}
+                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                        placeholder="e.g. +91 98765 43210"
+                        className="w-full pl-9 pr-4 py-2.5 bg-[#f7f9f6] border border-[#e8ede6] rounded-xl text-sm outline-none focus:bg-white focus:border-[#3d6b45] transition-colors"
+                      />
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </>
-        )}
-      </main>
 
-      {/* ── Add / Edit Service Modal ── */}
-      {modalOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-        >
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 flex flex-col gap-5">
-
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">
-                {editingServiceId ? "Edit Service" : "Add New Service"}
-              </h2>
-              <button
-                onClick={closeModal}
-                className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Name */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                Service Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => handleFormChange("name", e.target.value)}
-                placeholder="e.g. Lawn Mowing & Trimming"
-                className={`w-full px-4 py-2.5 border rounded-xl text-sm text-gray-800 bg-[#f7f9f6] outline-none transition-colors focus:bg-white ${
-                  errors.name ? "border-red-300 focus:border-red-400" : "border-[#e8ede6] focus:border-[#3d6b45]"
-                }`}
-              />
-              {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
-            </div>
-
-            {/* Category */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                Category <span className="text-red-400">*</span>
-              </label>
-              <select
-                value={form.category}
-                onChange={(e) => handleFormChange("category", e.target.value)}
-                className={`w-full px-4 py-2.5 border rounded-xl text-sm text-gray-800 bg-[#f7f9f6] outline-none transition-colors focus:bg-white ${
-                  errors.category ? "border-red-300 focus:border-red-400" : "border-[#e8ede6] focus:border-[#3d6b45]"
-                }`}
-              >
-                <option value="">Select a category</option>
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>{CATEGORY_ICONS[cat]} {cat}</option>
-                ))}
-              </select>
-              {errors.category && <p className="text-xs text-red-500">{errors.category}</p>}
-            </div>
-
-            {/* Price + Duration */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                  Price (₹) <span className="text-red-400">*</span>
-                </label>
-                <div className="relative">
-                  <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#3d6b45]" />
-                  <input
-                    type="number"
-                    value={form.price}
-                    onChange={(e) => handleFormChange("price", e.target.value)}
-                    placeholder="500"
-                    min="0"
-                    className={`w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm text-gray-800 bg-[#f7f9f6] outline-none transition-colors focus:bg-white ${
-                      errors.price ? "border-red-300 focus:border-red-400" : "border-[#e8ede6] focus:border-[#3d6b45]"
-                    }`}
-                  />
+                {/* Rates & Experience */}
+                <div className="flex flex-col gap-4">
+                  <h3 className="text-sm font-bold text-gray-900 border-b border-[#f0f4ee] pb-2">Rates & Experience</h3>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Hourly Base Rate (₹)</label>
+                    <div className="relative">
+                      <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#3d6b45]" />
+                      <input
+                        type="number"
+                        min="0"
+                        value={profile.basePrice}
+                        onChange={(e) => setProfile({ ...profile, basePrice: Number(e.target.value) })}
+                        placeholder="e.g. 500"
+                        className="w-full pl-9 pr-4 py-2.5 bg-[#f7f9f6] border border-[#e8ede6] rounded-xl text-sm font-bold text-gray-900 outline-none focus:bg-white focus:border-[#3d6b45] transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Years of Experience</label>
+                    <div className="relative">
+                      <Pickaxe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text" // string to allow "5+" 
+                        value={profile.experience}
+                        onChange={(e) => setProfile({ ...profile, experience: e.target.value })}
+                        placeholder="e.g. 5"
+                        className="w-full pl-9 pr-4 py-2.5 bg-[#f7f9f6] border border-[#e8ede6] rounded-xl text-sm outline-none focus:bg-white focus:border-[#3d6b45] transition-colors"
+                      />
+                    </div>
+                  </div>
                 </div>
-                {errors.price && <p className="text-xs text-red-500">{errors.price}</p>}
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Duration</label>
-                <select
-                  value={form.duration}
-                  onChange={(e) => handleFormChange("duration", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-[#e8ede6] rounded-xl text-sm text-gray-800 bg-[#f7f9f6] outline-none transition-colors focus:bg-white focus:border-[#3d6b45]"
-                >
-                  {DURATIONS.map((d) => (
-                    <option key={d} value={d}>{d}</option>
+              {/* Bio */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-1.5"><FileText className="w-4 h-4" /> About You</label>
+                <textarea
+                  value={profile.bio}
+                  onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                  placeholder="Tell clients about your expertise, passion for gardening, and what sets you apart..."
+                  rows={4}
+                  className="w-full px-4 py-3 bg-[#f7f9f6] border border-[#e8ede6] rounded-xl text-sm outline-none focus:bg-white focus:border-[#3d6b45] transition-colors resize-none"
+                />
+              </div>
+
+              {/* Specialties */}
+              <div className="flex flex-col gap-3">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Area of Specialties</label>
+                <div className="flex flex-wrap gap-2">
+                  {SPECIALTIES.map(spec => (
+                    <button
+                      key={spec}
+                      onClick={() => toggleSpecialty(spec)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${
+                        profile.specialties.includes(spec)
+                          ? "bg-[#3d6b45] text-white border-[#3d6b45] shadow-sm"
+                          : "bg-white text-gray-600 border-[#c8d9c0] hover:border-[#3d6b45] hover:text-[#3d6b45]"
+                      }`}
+                    >
+                      {spec}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
-            </div>
 
-            {/* Description */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Description</label>
-              <textarea
-                value={form.desc}
-                onChange={(e) => handleFormChange("desc", e.target.value)}
-                placeholder="Briefly describe what this service includes..."
-                rows={3}
-                className="w-full px-4 py-2.5 border border-[#e8ede6] rounded-xl text-sm text-gray-800 bg-[#f7f9f6] outline-none transition-colors focus:bg-white focus:border-[#3d6b45] resize-none"
-              />
-            </div>
+              {/* Save Button */}
+              <div className="pt-6 border-t border-[#f0f4ee] flex justify-end">
+                <button
+                  onClick={updateProfileBackend}
+                  disabled={savingProfile}
+                  className="flex items-center gap-2 bg-[#3d6b45] hover:bg-[#345c3c] disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-8 py-3 rounded-2xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#3d6b45]/20"
+                >
+                  <Save className="w-5 h-5" />
+                  {savingProfile ? "Saving..." : "Save Profile"}
+                </button>
+              </div>
 
-            {/* Modal Actions */}
-            <div className="flex gap-3 pt-1">
-              <button
-                onClick={closeModal}
-                className="flex-1 py-2.5 border border-[#e8ede6] rounded-xl text-sm font-semibold text-gray-500 hover:border-[#c8d9c0] hover:text-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveService}
-                className="flex-[2] flex items-center justify-center gap-2 py-2.5 bg-[#3d6b45] hover:bg-[#345c3c] text-white rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] active:scale-95 shadow-sm"
-              >
-                <Check className="w-4 h-4" />
-                {editingServiceId ? "Save Changes" : "Add Service"}
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+      </main>
     </div>
   );
 }

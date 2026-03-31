@@ -12,7 +12,8 @@ const getGardenerData = async (req, res) => {
         clerkId,
         name: req.user.name || req.user.firstName || "Gardener",
         email: req.user.email,
-        services: [],
+        basePrice: 0,
+        specialties: [],
         appointments: []
       });
     }
@@ -23,13 +24,22 @@ const getGardenerData = async (req, res) => {
   }
 };
 
-// Sync gardener services
-const syncServices = async (req, res) => {
+// Update gardener profile
+const updateProfile = async (req, res) => {
   try {
-    const { clerkId, services } = req.body;
+    const { clerkId, bio, basePrice, location, phone, specialties, experience } = req.body;
+    
+    const updateData = {};
+    if (bio !== undefined) updateData.bio = bio;
+    if (basePrice !== undefined) updateData.basePrice = basePrice;
+    if (location !== undefined) updateData.location = location;
+    if (phone !== undefined) updateData.phone = phone;
+    if (specialties !== undefined) updateData.specialties = specialties;
+    if (experience !== undefined) updateData.experience = experience;
+
     const gardener = await Gardener.findOneAndUpdate(
       { clerkId },
-      { $set: { services } },
+      { $set: updateData },
       { new: true, runValidators: true }
     );
 
@@ -37,7 +47,7 @@ const syncServices = async (req, res) => {
       return res.status(404).json({ success: false, message: "Gardener not found" });
     }
 
-    res.json({ success: true, data: gardener.services });
+    res.json({ success: true, data: gardener });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -94,7 +104,7 @@ const getGardenerById = async (req, res) => {
 // Book appointment — called by a customer from the frontend
 const bookAppointment = async (req, res) => {
   try {
-    const { gardenerId, userId, customerName, location, service, serviceName, price, date, time, duration, note } = req.body;
+    const { gardenerId, userId, customerName, location, serviceRequired, price, date, time, duration, note } = req.body;
 
     const gardener = await Gardener.findById(gardenerId);
     if (!gardener) {
@@ -106,7 +116,8 @@ const bookAppointment = async (req, res) => {
       customerName,
       customer: customerName,
       location,
-      service: serviceName || service,
+      serviceRequired,
+      price: price || gardener.basePrice,
       date: new Date(date),
       time,
       duration: duration || "1 hour",
@@ -175,7 +186,7 @@ module.exports = {
   getGardenerData,
   getAllGardeners,
   getGardenerById,
-  syncServices,
+  updateProfile,
   updateAppointmentStatus,
   bookAppointment,
   getUserAppointments,

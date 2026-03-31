@@ -20,15 +20,12 @@ const gardenerSchema = new mongoose.Schema({
   location: { 
     type: String 
   },
-  services: [
-    {
-      name: { type: String, required: true },
-      category: { type: String, required: true },
-      price: { type: Number, required: true },
-      duration: { type: String },
-      desc: { type: String },
-      active: { type: Boolean, default: true }
-    }
+  basePrice: {
+    type: Number,
+    default: 0
+  },
+  specialties: [
+    { type: String }
   ],
   bio: { 
     type: String 
@@ -53,7 +50,8 @@ const gardenerSchema = new mongoose.Schema({
       userId: { type: String, required: true }, // Clerk ID of customer
       customerName: { type: String, required: true },
       location: { type: String, required: true },
-      service: { type: String, required: true },
+      serviceRequired: { type: String, required: true },
+      price: { type: Number, required: true },
       date: { type: Date, required: true },
       time: { type: String, required: true },
       duration: { type: String },

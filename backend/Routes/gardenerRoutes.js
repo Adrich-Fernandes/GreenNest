@@ -4,7 +4,7 @@ const {
   getGardenerData,
   getAllGardeners,
   getGardenerById,
-  syncServices,
+  updateProfile,
   updateAppointmentStatus,
   bookAppointment,
   getUserAppointments,
@@ -24,7 +24,7 @@ router.put("/cancel-appointment", protect, cancelAppointment);
 
 // Gardener-only routes
 router.get("/:clerkId", protect, isGardener, getGardenerData);
-router.post("/sync-services", protect, isGardener, syncServices);
+router.post("/update-profile", protect, isGardener, updateProfile);
 router.put("/appointment-status", protect, isGardener, updateAppointmentStatus);
 
 module.exports = router;

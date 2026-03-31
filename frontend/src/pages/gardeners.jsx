@@ -4,10 +4,8 @@ import { Link } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
 
-// Removed static allGardeners mock data
-const allServices = ["All Services", "Home Gardening", "Lawn Maintenance", "Plant Care & Pruning"];
-
-const serviceOptions = ["All Services", "Home Gardening", "Lawn Maintenance", "Plant Care & Pruning"];
+// Using predefined specialties for filter options
+const serviceOptions = ["All Specialties", "Lawn Maintenance", "Home Gardening", "Landscaping", "Plant Care & Pruning", "Irrigation Setup", "Pest Control", "Seasonal Cleanup"];
 
 function useInView(threshold = 0.1) {
   const ref = useRef(null);
@@ -27,7 +25,7 @@ export default function Gardeners() {
   const [gardeners, setGardeners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [selectedService, setSelectedService] = useState("All Services");
+  const [selectedService, setSelectedService] = useState("All Specialties");
   const [serviceOpen, setServiceOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [cardsRef, cardsInView] = useInView(0.05);
@@ -57,9 +55,9 @@ export default function Gardeners() {
       (g.name || "").toLowerCase().includes(search.toLowerCase()) ||
       (g.location || "").toLowerCase().includes(search.toLowerCase());
     
-    const gardenerServiceNames = (g.services || []).map(s => s.name);
+    const gardenerSpecialties = g.specialties || [];
     const matchesService =
-      selectedService === "All Services" || gardenerServiceNames.includes(selectedService);
+      selectedService === "All Specialties" || gardenerSpecialties.includes(selectedService);
       
     return matchesSearch && matchesService;
   });
@@ -171,15 +169,15 @@ export default function Gardeners() {
                   <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">{gardener.bio || "No description provided."}</p>
 
                   <div className="flex flex-wrap gap-2">
-                    {/* ... (services mapping) */}
-                    {(gardener.services || []).slice(0, 3).map((service, idx) => (
+                    {/* ... (specialties mapping) */}
+                    {(gardener.specialties || []).slice(0, 3).map((spec, idx) => (
                       <span key={idx} className="text-xs font-medium text-[#3d6b45] bg-[#f0f4ee] border border-[#c8d9c0] px-3 py-1 rounded-full">
-                        {service.name}
+                        {spec}
                       </span>
                     ))}
-                    {gardener.services?.length > 3 && (
+                    {gardener.specialties?.length > 3 && (
                       <span className="text-[10px] text-gray-400 font-medium py-1">
-                        +{gardener.services.length - 3} more
+                        +{gardener.specialties.length - 3} more
                       </span>
                     )}
                   </div>
@@ -187,7 +185,7 @@ export default function Gardeners() {
                   <div className="flex items-center justify-between mt-auto pt-2">
                     <div>
                       <span className="text-xl font-bold text-gray-900">
-                        ₹{gardener.services?.[0]?.price || 0}
+                        ₹{gardener.basePrice || 0}
                       </span>
                       <span className="text-xs text-gray-400 ml-1">/hr</span>
                     </div>
