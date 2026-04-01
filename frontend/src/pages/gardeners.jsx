@@ -140,7 +140,7 @@ export default function Gardeners() {
               {filtered.map((gardener, i) => (
                 <div
                   key={gardener._id}
-                  className={`bg-white rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col gap-4 ${cardsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                  className={`bg-white rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col gap-4 opacity-100 translate-y-0`}
                   style={{ transitionDelay: `${i * 80}ms` }}
                 >
                   <div className="flex items-center gap-4">
@@ -191,9 +191,9 @@ export default function Gardeners() {
                     </div>
                     <Link
                       to={`/gardeners/${gardener._id}`}
-                      className="bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95"
+                      className="bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95 text-center"
                     >
-                      Book Service
+                      Book Gardener
                     </Link>
                   </div>
                 </div>
