@@ -182,6 +182,32 @@ const cancelAppointment = async (req, res) => {
   }
 };
 
+// Reschedule appointment — called by the customer
+const rescheduleAppointment = async (req, res) => {
+  try {
+    const { gardenerId, appointmentId, date, time } = req.body;
+
+    const gardener = await Gardener.findOneAndUpdate(
+      { _id: gardenerId, "appointments._id": appointmentId },
+      { $set: { 
+          "appointments.$.date": new Date(date),
+          "appointments.$.time": time,
+          "appointments.$.status": "Rescheduled"
+        } 
+      },
+      { new: true }
+    );
+
+    if (!gardener) {
+      return res.status(404).json({ success: false, message: "Appointment not found" });
+    }
+
+    res.json({ success: true, message: "Appointment rescheduled" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getGardenerData,
   getAllGardeners,
@@ -191,4 +217,5 @@ module.exports = {
   bookAppointment,
   getUserAppointments,
   cancelAppointment,
+  rescheduleAppointment,
 };

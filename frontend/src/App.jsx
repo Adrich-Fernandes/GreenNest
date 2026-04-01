@@ -25,7 +25,7 @@ const App = () => {
         {/* User Only Routes */}
         <Route path="/cart" element={<UserGuard><Cart /></UserGuard>} />
         <Route path='/orders' element={<UserGuard><Orders /></UserGuard>} />
-        <Route path='/appointments' element={<UserGuard><Appointments /></UserGuard>} />
+        <Route path='/appointments' element={<Appointments />} />
       </Routes>
     </div>
   )

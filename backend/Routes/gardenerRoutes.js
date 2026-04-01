@@ -9,6 +9,7 @@ const {
   bookAppointment,
   getUserAppointments,
   cancelAppointment,
+  rescheduleAppointment,
 } = require("../Controller/gardenerController");
 
 const { protect, isGardener } = require("../middleware/authMiddleware");
@@ -21,6 +22,7 @@ router.get("/profile/:id", getGardenerById);
 router.post("/book-appointment", protect, bookAppointment);
 router.get("/my-appointments/:userId", protect, getUserAppointments);
 router.put("/cancel-appointment", protect, cancelAppointment);
+router.put("/reschedule-appointment", protect, rescheduleAppointment);
 
 // Gardener-only routes
 router.get("/:clerkId", protect, isGardener, getGardenerData);

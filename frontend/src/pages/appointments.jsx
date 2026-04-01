@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   CalendarDays, Clock, MapPin, Star, Sprout,
-  Scissors, Home, Trees, Search, Loader2, Leaf,
+  Scissors, Home, Trees, Search, Loader2, Leaf, X
 } from "lucide-react";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
@@ -24,6 +24,12 @@ const SERVICE_ICONS = {
 
 const FILTERS = ["All", "Pending", "Accepted", "Completed", "Canceled", "Rescheduled"];
 
+const TIME_SLOTS = [
+  "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
+  "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM",
+  "04:00 PM", "05:00 PM",
+];
+
 export default function Appointments() {
   const { user, isLoaded } = useUser();
   const { isSignedIn, getToken } = useAuth();
@@ -33,6 +39,9 @@ export default function Appointments() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
   const [cancelling, setCancelling] = useState(null);
+  const [rescheduleData, setRescheduleData] = useState(null);
+  const [rescheduling, setRescheduling] = useState(false);
+  const [rescheduleError, setRescheduleError] = useState("");
 
   useEffect(() => {
     if (isLoaded && isSignedIn && user) fetchAppointments();
@@ -76,6 +85,45 @@ export default function Appointments() {
       console.error("Cancel failed:", err);
     } finally {
       setCancelling(null);
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!rescheduleData.date || !rescheduleData.time) {
+      setRescheduleError("Please select both date and time");
+      return;
+    }
+    setRescheduling(true);
+    setRescheduleError("");
+    try {
+      const token = await getToken();
+      const res = await fetch("http://localhost:8000/api/gardener/reschedule-appointment", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+          gardenerId: rescheduleData.apt.gardenerId, 
+          appointmentId: rescheduleData.apt._id,
+          date: rescheduleData.date,
+          time: rescheduleData.time
+        }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setAppointments((prev) =>
+          prev.map((a) => a._id === rescheduleData.apt._id ? { ...a, status: "Rescheduled", date: rescheduleData.date, time: rescheduleData.time } : a)
+        );
+        setRescheduleData(null);
+      } else {
+        setRescheduleError(result.message || "Failed to reschedule");
+      }
+    } catch (err) {
+      console.error("Reschedule failed:", err);
+      setRescheduleError("An error occurred");
+    } finally {
+      setRescheduling(false);
     }
   };
 
@@ -220,14 +268,22 @@ export default function Appointments() {
                       <span className="text-xs text-gray-400">
                         {new Date(apt.createdAt).toLocaleDateString("en-IN")}
                       </span>
-                      {(apt.status === "Pending" || apt.status === "Accepted") && (
-                        <button
-                          onClick={() => handleCancel(apt)}
-                          disabled={cancelling === apt._id}
-                          className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 font-medium transition-colors disabled:opacity-50"
-                        >
-                          {cancelling === apt._id ? "Cancelling..." : "Cancel"}
-                        </button>
+                      {(apt.status === "Pending" || apt.status === "Accepted" || apt.status === "Rescheduled") && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setRescheduleData({ apt, date: "", time: "" })}
+                            className="text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium transition-colors"
+                          >
+                            Reschedule
+                          </button>
+                          <button
+                            onClick={() => handleCancel(apt)}
+                            disabled={cancelling === apt._id}
+                            className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 font-medium transition-colors disabled:opacity-50"
+                          >
+                            {cancelling === apt._id ? "Cancelling..." : "Cancel"}
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -238,6 +294,64 @@ export default function Appointments() {
         </div>
       </section>
       <Footer />
+
+      {/* Reschedule Modal */}
+      {rescheduleData && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-lg font-bold">Reschedule</h3>
+                <p className="text-xs text-gray-500 mt-1">Select a new date and time</p>
+              </div>
+              <button onClick={() => setRescheduleData(null)} className="p-1 hover:bg-gray-100 rounded-lg text-gray-400">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-gray-700">New Date</label>
+                <input 
+                  type="date" 
+                  min={new Date().toISOString().split("T")[0]}
+                  value={rescheduleData.date}
+                  onChange={(e) => setRescheduleData(prev => ({...prev, date: e.target.value}))}
+                  className="w-full border border-[#c8d9c0] rounded-xl px-3 py-2 text-sm outline-none focus:border-[#3d6b45] focus:ring-1 focus:ring-[#3d6b45]"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-gray-700">New Time</label>
+                <select 
+                  value={rescheduleData.time}
+                  onChange={(e) => setRescheduleData(prev => ({...prev, time: e.target.value}))}
+                  className="w-full border border-[#c8d9c0] rounded-xl px-3 py-2 text-sm outline-none focus:border-[#3d6b45] focus:ring-1 focus:ring-[#3d6b45]"
+                >
+                  <option value="">Select a time...</option>
+                  {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              {rescheduleError && <p className="text-xs text-red-500">{rescheduleError}</p>}
+            </div>
+
+            <div className="flex justify-end gap-2 mt-2">
+              <button 
+                onClick={() => setRescheduleData(null)}
+                className="px-4 py-2 text-sm font-semibold text-gray-500 hover:bg-gray-50 rounded-xl"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleReschedule}
+                disabled={rescheduling}
+                className="px-4 py-2 text-sm font-semibold bg-[#3d6b45] text-white rounded-xl hover:bg-[#345c3c] disabled:opacity-50 transition-colors"
+              >
+                {rescheduling ? "Saving..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
