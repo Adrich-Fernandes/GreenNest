@@ -46,29 +46,7 @@ export default function UserGuard({ children }) {
     return <RedirectToSignIn />;
   }
 
-  const role = dbRole;
-
-  // If they are an admin or gardener, they shouldn't be here (as per strict user request)
-  if (role !== "user") {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-6 border border-red-100">
-           <UserX className="w-8 h-8 text-red-500" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Shopping Access Restricted</h1>
-        <p className="text-gray-400 max-w-sm mb-8">
-          The system database indicates this is a professional or staff account. 
-          Please use your dedicated dashboard.
-        </p>
-        <button 
-          onClick={() => window.location.href = "http://localhost:5174"} // Link back to Admin Project
-          className="px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-100"
-        >
-          Go to Your Dashboard
-        </button>
-      </div>
-    );
-  }
-
+  // Relaxed: Any signed-in user can access their own retail features (Cart, Orders, Appointments)
+  // regardless of their DB role.
   return children;
 }
