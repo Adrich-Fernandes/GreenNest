@@ -10,6 +10,9 @@ const {
   getUserAppointments,
   cancelAppointment,
   rescheduleAppointment,
+  deleteGardener,
+  adminUpdateProfile,
+  adminAddGardener,
 } = require("../Controller/gardenerController");
 
 const { protect, isGardener } = require("../middleware/authMiddleware");
@@ -28,5 +31,9 @@ router.put("/reschedule-appointment", protect, rescheduleAppointment);
 router.get("/:clerkId", protect, isGardener, getGardenerData);
 router.post("/update-profile", protect, isGardener, updateProfile);
 router.put("/appointment-status", protect, isGardener, updateAppointmentStatus);
+// Admin routes
+router.post("/admin-add", adminAddGardener);
+router.put("/admin-update/:id", adminUpdateProfile);
+router.delete("/:id", deleteGardener);
 
 module.exports = router;

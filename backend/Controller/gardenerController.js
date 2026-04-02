@@ -1,4 +1,4 @@
-const Gardener = require("../Models/gardenerModel.js");
+const Gardener = require("../models/gardenerModel.js");
 
 // Get or Create Gardener data
 const getGardenerData = async (req, res) => {
@@ -254,6 +254,37 @@ const adminUpdateProfile = async (req, res) => {
   }
 };
 
+// Add new gardener (Admin)
+const adminAddGardener = async (req, res) => {
+  try {
+    const { name, email, location, specialties, rating, status, basePrice, experience, bio } = req.body;
+
+    // Check if email already exists
+    const existing = await Gardener.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ success: false, message: "Gardener with this email already exists" });
+    }
+
+    const gardener = await Gardener.create({
+      clerkId: "manual-" + Date.now() + "-" + Math.floor(Math.random() * 1000), // Generate a unique clerkId for manual entries
+      name,
+      email: email || (name.toLowerCase().replace(/\s+/g, '.') + "@manual.com"), // Fallback email
+      location,
+      specialties: specialties || [],
+      rating: rating || 0,
+      status: status || "active",
+      basePrice: basePrice || 0,
+      experience: experience || "0",
+      bio: bio || "",
+      appointments: []
+    });
+
+    res.status(201).json({ success: true, data: gardener });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getGardenerData,
   getAllGardeners,
@@ -266,4 +297,5 @@ module.exports = {
   rescheduleAppointment,
   deleteGardener,
   adminUpdateProfile,
+  adminAddGardener,
 };

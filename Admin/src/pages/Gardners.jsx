@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Eye, Pencil, Trash2, X, Loader2 } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, X, Loader2, Star } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
 
 const statusStyles = {
@@ -9,14 +9,18 @@ const statusStyles = {
 
 const serviceOptions = ["Home Gardening", "Lawn Maintenance", "Plant Care & Pruning", "All Services", "Landscaping", "Tree Trimming"];
 
-const emptyForm = { name: "", location: "", services: "", rating: "", status: "Active" };
+const emptyForm = { name: "", location: "", services: "", rating: "", status: "active", basePrice: "", experience: "", bio: "" };
 
 export default function Gardners() {
   const [gardeners, setGardeners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingGardener, setViewingGardener] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchGardeners();
@@ -52,22 +56,146 @@ export default function Gardners() {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const handleSubmit = () => {
-    const e = validate();
-    if (Object.keys(e).length > 0) { setErrors(e); return; }
-    setGardeners((prev) => [
-      { id: prev.length + 1, name: form.name.trim(), location: form.location.trim(), services: form.services.trim(), rating: parseFloat(Number(form.rating).toFixed(1)), status: form.status },
-      ...prev,
-    ]);
-    setShowModal(false);
-    setForm(emptyForm);
-    setErrors({});
+  const handleEdit = (g) => {
+    setEditingId(g._id);
+    setForm({
+      name: g.name,
+      location: g.location || "",
+      services: (g.specialties || []).join(", "),
+      rating: g.rating || "",
+      status: g.status?.toLowerCase() || "active",
+      basePrice: g.basePrice || "",
+      experience: g.experience || "",
+      bio: g.bio || ""
+    });
+    setShowModal(true);
   };
 
-  const handleClose = () => { setShowModal(false); setForm(emptyForm); setErrors({}); };
+  const handleView = (g) => {
+    setViewingGardener(g);
+    setShowViewModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this gardener profile?")) return;
+    try {
+      const res = await fetch(`http://localhost:8000/api/gardener/${id}`, { method: "DELETE" });
+      const result = await res.json();
+      if (result.success) {
+        setGardeners((prev) => prev.filter((g) => g._id !== id));
+      } else {
+        alert("Failed to delete: " + result.message);
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Failed to delete gardener.");
+    }
+  };
+
+  const handleSubmit = async () => {
+    const e = validate();
+    if (Object.keys(e).length > 0) { setErrors(e); return; }
+    
+    setSubmitting(true);
+    try {
+      const url = editingId 
+        ? `http://localhost:8000/api/gardener/admin-update/${editingId}`
+        : `http://localhost:8000/api/gardener/admin-add`; // Note: admin-add might not exist, but let's focus on update
+      
+      const method = editingId ? "PUT" : "POST";
+      
+      // Map form services (string) to specialties (array)
+      const specialties = form.services.split(",").map(s => s.trim()).filter(s => s);
+      
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, specialties })
+      });
+      const result = await res.json();
+      
+      if (result.success) {
+        if (editingId) {
+          setGardeners(prev => prev.map(g => g._id === editingId ? result.data : g));
+        } else {
+          setGardeners(prev => [result.data, ...prev]);
+        }
+        handleClose();
+      } else {
+        alert("Operation failed: " + result.message);
+      }
+    } catch (err) {
+      console.error("Submit error:", err);
+      alert("Something went wrong.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleClose = () => { 
+    setShowModal(false); 
+    setForm(emptyForm); 
+    setErrors({}); 
+    setEditingId(null); 
+  };
 
   return (
-    <AdminLayout>
+      <>
+      {/* View Gardener Modal */}
+      {showViewModal && viewingGardener && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.3)" }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col" style={{ animation: "fadeUp 0.15s ease" }}>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-[#e8ede6]">
+              <h2 className="text-xl font-bold text-gray-900">Gardener Profile</h2>
+              <button onClick={() => setShowViewModal(false)} className="p-2 hover:bg-[#f0f4ee] rounded-xl text-gray-400 hover:text-gray-600 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-8 flex flex-col gap-6 overflow-y-auto max-h-[75vh]">
+              <div className="flex items-center gap-6">
+                <div className="w-20 h-20 bg-[#f0f4ee] rounded-3xl flex items-center justify-center shrink-0 border border-[#c8d9c0]">
+                  <Loader2 className="w-10 h-10 text-[#3d6b45] opacity-20" />
+                  <div className="absolute font-bold text-2xl text-[#3d6b45]">{viewingGardener.name.charAt(0)}</div>
+                </div>
+                <div>
+                   <h3 className="text-2xl font-bold text-gray-900">{viewingGardener.name}</h3>
+                   <p className="text-[#3d6b45] font-medium flex items-center gap-1.5"><Star className="w-4 h-4 text-amber-400 fill-amber-400" /> {viewingGardener.rating || 0}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="bg-[#f7f9f6] p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Status</p>
+                    <p className={`text-sm font-bold capitalize ${viewingGardener.status === 'active' ? 'text-[#3d6b45]' : 'text-gray-500'}`}>{viewingGardener.status}</p>
+                 </div>
+                 <div className="bg-[#f7f9f6] p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Experience</p>
+                    <p className="text-sm font-bold text-gray-800">{viewingGardener.experience || '0'} Years</p>
+                 </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2">About</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{viewingGardener.bio || 'No bio provided for this professional.'}</p>
+              </div>
+
+              <div>
+                 <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2">Specialties</p>
+                 <div className="flex flex-wrap gap-2">
+                    {(viewingGardener.specialties || []).map(s => (
+                      <span key={s} className="px-3 py-1 bg-[#f0f4ee] text-[#3d6b45] text-xs font-semibold rounded-full border border-[#c8d9c0]">{s}</span>
+                    ))}
+                 </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-[#e8ede6]">
+               <button onClick={() => setShowViewModal(false)} className="w-full bg-[#3d6b45] text-white py-2.5 rounded-xl font-bold text-sm">Close Profile</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <AdminLayout>
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
@@ -126,9 +254,24 @@ export default function Gardners() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Eye className="w-4 h-4" /></button>
-                          <button className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Pencil className="w-4 h-4" /></button>
-                          <button className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                          <button 
+                            onClick={() => handleView(g)}
+                            className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleEdit(g)}
+                            className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(g._id)}
+                            className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -222,8 +365,8 @@ export default function Gardners() {
                     name="status" value={form.status} onChange={handleChange}
                     className="w-full border border-[#e8ede6] rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#3d6b45]/20 focus:border-[#3d6b45] bg-white cursor-pointer hover:border-[#c8d9c0]"
                   >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
                   </select>
                 </div>
               </div>
@@ -234,8 +377,8 @@ export default function Gardners() {
               <button onClick={handleClose} className="flex-1 border border-[#e8ede6] text-gray-500 hover:bg-[#f6f9f5] text-sm font-semibold py-2.5 rounded-xl transition-colors">
                 Cancel
               </button>
-              <button onClick={handleSubmit} className="flex-1 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
-                <Plus className="w-4 h-4" /> Add Gardener
+              <button onClick={handleSubmit} disabled={submitting} className="flex-1 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                {submitting ? "Processing..." : (editingId ? "Save Changes" : "Add Gardener")}
               </button>
             </div>
           </div>
@@ -249,5 +392,6 @@ export default function Gardners() {
         </div>
       )}
     </AdminLayout>
+    </>
   );
 }
