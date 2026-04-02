@@ -1,4 +1,4 @@
-const Gardener = require("../Models/gardenerModel");
+const Gardener = require("../Models/gardenerModel.js");
 
 // Get or Create Gardener data
 const getGardenerData = async (req, res) => {
@@ -78,10 +78,11 @@ const updateAppointmentStatus = async (req, res) => {
   }
 };
 
-// Get all active gardeners
+// Get all gardeners (filtered by active for public, all for admin)
 const getAllGardeners = async (req, res) => {
   try {
-    const gardeners = await Gardener.find({ status: "active" });
+    const filter = req.query.all === "true" ? {} : { status: "active" };
+    const gardeners = await Gardener.find(filter);
     res.json({ success: true, data: gardeners });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -208,6 +209,51 @@ const rescheduleAppointment = async (req, res) => {
   }
 };
 
+// Delete gardener profile (Admin)
+const deleteGardener = async (req, res) => {
+  try {
+    const gardener = await Gardener.findByIdAndDelete(req.params.id);
+    if (!gardener) {
+      return res.status(404).json({ success: false, message: "Gardener not found" });
+    }
+    res.json({ success: true, message: "Gardener profile deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Update gardener profile (Admin using database ID)
+const adminUpdateProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, location, specialties, rating, status, basePrice, experience, bio } = req.body;
+
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (location !== undefined) updateData.location = location;
+    if (specialties !== undefined) updateData.specialties = specialties;
+    if (rating !== undefined) updateData.rating = rating;
+    if (status !== undefined) updateData.status = status;
+    if (basePrice !== undefined) updateData.basePrice = basePrice;
+    if (experience !== undefined) updateData.experience = experience;
+    if (bio !== undefined) updateData.bio = bio;
+
+    const gardener = await Gardener.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    if (!gardener) {
+      return res.status(404).json({ success: false, message: "Gardener not found" });
+    }
+
+    res.json({ success: true, data: gardener });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getGardenerData,
   getAllGardeners,
@@ -218,4 +264,6 @@ module.exports = {
   getUserAppointments,
   cancelAppointment,
   rescheduleAppointment,
+  deleteGardener,
+  adminUpdateProfile,
 };

@@ -1,18 +1,10 @@
-import { useState } from "react";
-import { Plus, Eye, Pencil, Trash2, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Eye, Pencil, Trash2, X, Loader2 } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
 
-const initialGardeners = [
-  { id: 1, name: "Rajesh Kumar", location: "Mumbai", services: "Home Gardening, Lawn", rating: 4.8, status: "Active" },
-  { id: 2, name: "Priya Sharma", location: "Delhi", services: "Plant Care & Pruning", rating: 4.9, status: "Active" },
-  { id: 3, name: "Amit Patel", location: "Bangalore", services: "Lawn Maintenance", rating: 4.5, status: "Active" },
-  { id: 4, name: "Sunita Rao", location: "Chennai", services: "Home Gardening", rating: 4.7, status: "Inactive" },
-  { id: 5, name: "Meena Joshi", location: "Hyderabad", services: "All Services", rating: 4.8, status: "Active" },
-];
-
 const statusStyles = {
-  Active: "bg-[#f0f4ee] text-[#3d6b45] border-[#c8d9c0]",
-  Inactive: "bg-gray-100 text-gray-500 border-gray-200",
+  active: "bg-[#f0f4ee] text-[#3d6b45] border-[#c8d9c0]",
+  inactive: "bg-gray-100 text-gray-500 border-gray-200",
 };
 
 const serviceOptions = ["Home Gardening", "Lawn Maintenance", "Plant Care & Pruning", "All Services", "Landscaping", "Tree Trimming"];
@@ -20,10 +12,29 @@ const serviceOptions = ["Home Gardening", "Lawn Maintenance", "Plant Care & Prun
 const emptyForm = { name: "", location: "", services: "", rating: "", status: "Active" };
 
 export default function Gardners() {
-  const [gardeners, setGardeners] = useState(initialGardeners);
+  const [gardeners, setGardeners] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    fetchGardeners();
+  }, []);
+
+  const fetchGardeners = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/gardener?all=true");
+      const result = await res.json();
+      if (result.success) {
+        setGardeners(result.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch gardeners:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validate = () => {
     const e = {};
@@ -72,45 +83,59 @@ export default function Gardners() {
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-[#e8ede6]">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-gray-400 border-b border-[#f0f4ee]">
-                  <th className="text-left px-6 py-3 font-medium">Name</th>
-                  <th className="text-left px-6 py-3 font-medium">Location</th>
-                  <th className="text-left px-6 py-3 font-medium">Services</th>
-                  <th className="text-left px-6 py-3 font-medium">Rating</th>
-                  <th className="text-left px-6 py-3 font-medium">Status</th>
-                  <th className="text-left px-6 py-3 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {gardeners.map((g, i) => (
-                  <tr key={g.id} className={`border-b border-[#f0f4ee] hover:bg-[#fafcfa] transition-colors ${i === gardeners.length - 1 ? "border-0" : ""}`}>
-                    <td className="px-6 py-4 font-semibold text-gray-800">{g.name}</td>
-                    <td className="px-6 py-4 text-gray-500">{g.location}</td>
-                    <td className="px-6 py-4 text-gray-500 max-w-[180px] truncate">{g.services}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1">
-                        <span className="text-amber-500">★</span>
-                        <span className="font-semibold text-gray-700">{g.rating}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusStyles[g.status]}`}>
-                        {g.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Eye className="w-4 h-4" /></button>
-                        <button className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Pencil className="w-4 h-4" /></button>
-                        <button className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                      </div>
-                    </td>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-24 gap-4">
+                <Loader2 className="w-10 h-10 text-[#3d6b45] animate-spin" />
+                <p className="text-gray-400 font-medium tracking-tight">Loading gardeners...</p>
+              </div>
+            ) : gardeners.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 gap-2">
+                 <p className="text-gray-400 font-medium">No gardeners found</p>
+                 <p className="text-xs text-gray-300 italic">Get started by onboarding new professionals</p>
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-400 border-b border-[#f0f4ee]">
+                    <th className="text-left px-6 py-3 font-medium">Name</th>
+                    <th className="text-left px-6 py-3 font-medium">Location</th>
+                    <th className="text-left px-6 py-3 font-medium">Services</th>
+                    <th className="text-left px-6 py-3 font-medium">Rating</th>
+                    <th className="text-left px-6 py-3 font-medium">Status</th>
+                    <th className="text-left px-6 py-3 font-medium">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {gardeners.map((g, i) => (
+                    <tr key={g._id || g.id} className={`border-b border-[#f0f4ee] hover:bg-[#fafcfa] transition-colors ${i === gardeners.length - 1 ? "border-0" : ""}`}>
+                      <td className="px-6 py-4 font-semibold text-gray-800">{g.name}</td>
+                      <td className="px-6 py-4 text-gray-500">{g.location || "N/A"}</td>
+                      <td className="px-6 py-4 text-gray-500 max-w-[180px] truncate">
+                        {(g.specialties || []).join(", ") || (g.services || "None")}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1">
+                          <span className="text-amber-500">★</span>
+                          <span className="font-semibold text-gray-700">{g.rating || 0}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`text-xs capitalize font-semibold px-2.5 py-0.5 rounded-full border ${statusStyles[g.status?.toLowerCase()] || statusStyles.inactive}`}>
+                          {g.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Eye className="w-4 h-4" /></button>
+                          <button className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Pencil className="w-4 h-4" /></button>
+                          <button className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
