@@ -9,6 +9,7 @@ const navLinks = [
   { label: "Gardeners", to: "/gardeners" },
   { label: "Orders", to: "/orders" },
   { label: "Appointments", to: "/appointments" },
+  { label: "My Queries", to: "/my-queries" },
 ];
 
 const API_BASE = "http://localhost:8000/api/products";
@@ -29,7 +30,7 @@ export default function UserNavBar() {
   const { isSignedIn }                     = useAuth();
 
   const filteredNavLinks = navLinks.filter((link) => {
-    if (["Orders", "Appointments"].includes(link.label)) {
+    if (["Orders", "Appointments", "My Queries"].includes(link.label)) {
       return isSignedIn;
     }
     return true;
@@ -123,7 +124,7 @@ export default function UserNavBar() {
           </div>
 
           {/* Desktop Nav */}
-          <ul className="hidden md:flex items-center gap-1 shrink-0">
+          <ul className="hidden md:flex items-center gap-4 shrink-0 px-2">
             {filteredNavLinks.map((link) => {
               const isActive = location.pathname === link.to;
               return (

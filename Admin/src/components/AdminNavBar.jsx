@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Users, ShoppingCart, Leaf, X, RotateCcw } from "lucide-react";
+import { LayoutDashboard, Package, Users, ShoppingCart, Leaf, X, RotateCcw, MessageSquare } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
@@ -8,6 +8,7 @@ const sidebarLinks = [
   { label: "Gardeners", icon: Users, path: "/gardeners" },
   { label: "Orders", icon: ShoppingCart, path: "/orders" },
   { label: "Returns", icon: RotateCcw, path: "/returns" },
+  { label: "Queries", icon: MessageSquare, path: "/queries" },
 ];
 
 export default function Nav({ sidebarOpen, setSidebarOpen }) {
@@ -49,7 +50,7 @@ export default function Nav({ sidebarOpen, setSidebarOpen }) {
         </div>
 
         {/* Nav Links */}
-        <nav className="flex flex-col gap-1 px-3 py-4 flex-1">
+        <nav className="flex flex-col gap-2 px-3 py-4 flex-1">
           {sidebarLinks.map((link) => {
             const Icon = link.icon;
             const isActive = location.pathname === link.path;

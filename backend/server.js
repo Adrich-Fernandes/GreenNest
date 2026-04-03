@@ -4,7 +4,8 @@ const cors = require("cors");
 require("dotenv").config();
 
 const productRoutes = require("./Routes/productRoutes");
-const userRoutes = require("./Routes/userRouts");
+const userRoutes = require("./Routes/userRoutes");
+const queryRoutes = require("./Routes/queryRoutes");
 const orderRoutes = require("./Routes/orderRoutes");
 const gardenerRoutes = require("./Routes/gardenerRoutes");
 
@@ -21,6 +22,7 @@ app.use("/api/cart", userRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/gardener", gardenerRoutes);
+app.use("/api/queries", queryRoutes);
 
 // Health check
 app.get("/", (req, res) => {

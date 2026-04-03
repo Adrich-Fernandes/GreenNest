@@ -10,6 +10,7 @@ import Products from './pages/Products';
 import Gardners from './pages/Gardners';
 import Orders from './pages/Orders';
 import Returns from './pages/Returns';
+import Queries from './pages/Queries';
 import GardenerDashboard from './Gardner/dashboard';
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/gardeners" element={<Gardners />} />
           <Route path="/orders"    element={<Orders />} />
           <Route path="/returns"   element={<Returns />} />
+          <Route path="/queries"   element={<Queries />} />
 
           {/* Gardener-only routes */}
           <Route path="/gardener/dashboard" element={<GardenerDashboard />} />

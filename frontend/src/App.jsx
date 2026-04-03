@@ -9,6 +9,7 @@ import Cart from './pages/cart'
 import UserSync from './components/UserSync'
 import Orders from './pages/orders'
 import Appointments from './pages/appointments'
+import MyQueries from './pages/myQueries'
 import UserGuard from './components/UserGuard'
 
 const App = () => {
@@ -26,6 +27,7 @@ const App = () => {
         <Route path="/cart" element={<UserGuard><Cart /></UserGuard>} />
         <Route path='/orders' element={<UserGuard><Orders /></UserGuard>} />
         <Route path='/appointments' element={<UserGuard><Appointments /></UserGuard>} />
+        <Route path='/my-queries' element={<UserGuard><MyQueries /></UserGuard>} />
       </Routes>
     </div>
   )
