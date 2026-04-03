@@ -467,10 +467,6 @@ function OrderCard({ order, index, mounted, onReturnRequest }) {
                 </div>
               )}
 
-              {/* Buy again */}
-              <button className="flex items-center gap-1.5 text-xs font-semibold text-[#3d6b45] bg-[#f0f4ee] border border-[#c8d9c0] px-3 py-2 rounded-xl hover:bg-[#e4edde] transition-colors ml-auto">
-                <RefreshCw className="w-3.5 h-3.5" /> Buy Again
-              </button>
             </div>
 
           </div>
@@ -667,21 +663,6 @@ export default function Orders() {
             </div>
           )}
 
-          {/* Help strip */}
-          <div className={`mt-8 bg-white rounded-2xl border border-[#e8ede6] px-5 py-4 flex items-center justify-between gap-3 flex-wrap transition-all duration-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "400ms" }}>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-[#f0f4ee] rounded-xl flex items-center justify-center">
-                <AlertCircle className="w-4 h-4 text-[#3d6b45]" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-gray-800">Need help with an order?</p>
-                <p className="text-xs text-gray-400">Our support team is available Mon–Sat, 9 AM – 6 PM</p>
-              </div>
-            </div>
-            <button className="flex items-center gap-1.5 text-xs font-semibold text-[#3d6b45] hover:underline">
-              Contact Support <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
 
         </div>
       </section>
