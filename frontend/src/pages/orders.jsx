@@ -440,13 +440,15 @@ function OrderCard({ order, index, mounted, onReturnRequest }) {
               )}
 
               {/* Return requested + pickup info */}
-              {order.returnStatus === "return_requested" && (
+              {(order.returnStatus === "return_requested" || order.statusKey === "return_confirmed" || order.statusKey === "refunded") && (
                 <div className="flex items-center gap-2 text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-2 rounded-xl">
                   <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Return Requested</span>
-                      <span className="flex items-center gap-1 text-orange-500">
-                        <PackageCheck className="w-3.5 h-3.5" /> Pickup: {new Date(order.pickupDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                      </span>
+                  <span>{order.statusKey === "return_confirmed" || order.statusKey === "refunded" ? "Return Confirmed" : "Return Requested"}</span>
+                  {order.pickupDate && (order.statusKey === "return_confirmed" || order.statusKey === "refunded") && (
+                    <span className="flex items-center gap-1 text-orange-500">
+                      <PackageCheck className="w-3.5 h-3.5" /> Pickup: {new Date(order.pickupDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                    </span>
+                  )}
                 </div>
               )}
 
