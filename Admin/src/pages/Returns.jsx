@@ -18,6 +18,13 @@ export default function Returns() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingOrder, setViewingOrder] = useState(null);
+
+  const handleView = (order) => {
+    setViewingOrder(order);
+    setShowViewModal(true);
+  };
 
   const fetchReturns = async () => {
     try {
@@ -74,6 +81,107 @@ export default function Returns() {
   };
 
   return (
+    <>
+      {/* Return Details Modal */}
+      {showViewModal && viewingOrder && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl flex flex-col relative max-h-[90vh] overflow-hidden animate-fade-in-up">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between px-8 py-6 border-b border-amber-50 bg-amber-50/10">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] uppercase font-black text-amber-600/60 bg-amber-100/50 px-2.5 py-1 rounded-full tracking-widest">
+                    Resolution Details
+                  </span>
+                  <span className="text-[10px] font-mono text-gray-400">#{viewingOrder._id.slice(-6).toUpperCase()}</span>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 tracking-tight">Return Summary</h2>
+              </div>
+              <button 
+                onClick={() => setShowViewModal(false)}
+                className="p-3 bg-white border border-amber-50 hover:bg-red-50 hover:text-red-500 rounded-2xl text-gray-400 transition-all shadow-sm hover:shadow-md"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-8">
+              
+              {/* Return Reason Card */}
+              {viewingOrder.returnReason || viewingOrder.statusKey === "cancel_requested" ? (
+                <div className="bg-amber-50/30 border border-amber-100 p-6 rounded-3xl flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-amber-600" />
+                    <h3 className="font-bold text-amber-900 text-sm uppercase tracking-widest">Customer Note</h3>
+                  </div>
+                  <p className="font-bold text-gray-800 text-lg">{viewingOrder.returnReason || "Cancellation"}</p>
+                  {viewingOrder.returnDetails && (
+                    <p className="text-sm text-gray-600 italic leading-relaxed py-2 pl-4 border-l-2 border-amber-200">
+                      "{viewingOrder.returnDetails}"
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
+              {/* Items List */}
+              <div className="flex flex-col gap-4">
+                 <div className="flex items-center gap-2">
+                   <RotateCcw className="w-4 h-4 text-amber-600" />
+                   <h3 className="font-bold text-gray-900 text-sm tracking-tight uppercase tracking-widest">Items Status</h3>
+                 </div>
+                 <div className="flex flex-col gap-3">
+                    {viewingOrder.items?.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-4 bg-white border border-amber-50 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                         <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-amber-50 rounded-xl overflow-hidden shrink-0 border border-amber-50/50">
+                              <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-800 text-sm leading-tight">{item.name}</p>
+                              <p className="text-[10px] text-gray-400 font-medium">Category: {item.category}</p>
+                            </div>
+                         </div>
+                         <div className="text-right">
+                           <p className="font-bold text-gray-900 text-sm">₹{item.price.toLocaleString("en-IN")}</p>
+                           <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">Qty: {item.qty}</p>
+                         </div>
+                      </div>
+                    ))}
+                 </div>
+              </div>
+
+              {/* Event Logs */}
+              <div className="flex flex-col gap-4">
+                 <div className="flex items-center gap-2">
+                   <Clock className="w-4 h-4 text-amber-600" />
+                   <h3 className="font-bold text-gray-900 text-sm tracking-tight uppercase tracking-widest">System Logs</h3>
+                 </div>
+                 <div className="flex flex-col gap-2">
+                    {viewingOrder.tracking?.filter(t => t.done).map((t, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-xl">
+                        <span className="text-xs font-bold text-gray-800">{t.label}</span>
+                        <span className="text-[10px] text-gray-500 font-medium bg-white px-2 py-1 rounded shadow-sm">{t.time || "Logged"}</span>
+                      </div>
+                    ))}
+                 </div>
+              </div>
+
+            </div>
+            
+            <style dangerouslySetInnerHTML={{ __html: `
+              @keyframes fade-in-up {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+              .animate-fade-in-up {
+                animation: fade-in-up 0.3s ease-out forwards;
+              }
+            `}} />
+          </div>
+        </div>
+      )}
+
     <AdminLayout>
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
@@ -203,7 +311,10 @@ export default function Returns() {
                             </button>
                           )}
                           <div className="flex items-center gap-2 opacity-10 group-hover:opacity-100 transition-opacity">
-                            <button className="p-2 hover:bg-amber-100 rounded-lg text-amber-600 transition-all" title="View Logs">
+                            <button 
+                              onClick={() => handleView(o)}
+                              className="p-2 hover:bg-amber-100 rounded-lg text-amber-600 transition-all" title="View Logs"
+                            >
                               <Eye className="w-4 h-4" />
                             </button>
                             {updatingId === o._id && <Loader2 className="w-4 h-4 animate-spin text-amber-600" />}
@@ -219,5 +330,6 @@ export default function Returns() {
         </div>
       </div>
     </AdminLayout>
+    </>
   );
 }

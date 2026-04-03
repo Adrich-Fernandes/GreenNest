@@ -231,8 +231,8 @@ const requestReturn = async (req, res) => {
     order.returnDetails = details;
     order.returnDate = new Date();
     
-    // Set a mock pickup date for 2 days from now
-    order.pickupDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+    // Admin will set pickup date upon confirmation
+    order.pickupDate = null;
 
     // Update the tracking log
     order.tracking.push({
