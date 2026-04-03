@@ -9,7 +9,7 @@ const statusStyles = {
 
 const serviceOptions = ["Home Gardening", "Lawn Maintenance", "Plant Care & Pruning", "All Services", "Landscaping", "Tree Trimming"];
 
-const emptyForm = { name: "", location: "", services: "", rating: "", status: "active", basePrice: "", experience: "", bio: "" };
+const emptyForm = { name: "", email: "", location: "", services: "", rating: "", status: "active", basePrice: "", experience: "", bio: "" };
 
 export default function Gardners() {
   const [gardeners, setGardeners] = useState([]);
@@ -45,6 +45,7 @@ export default function Gardners() {
     if (!form.name.trim()) e.name = "Name is required";
     if (!form.location.trim()) e.location = "Location is required";
     if (!form.services.trim()) e.services = "Services are required";
+    if (form.email && !/\S+@\S+\.\S+/.test(form.email)) e.email = "Invalid email format";
     if (!form.rating || isNaN(Number(form.rating)) || Number(form.rating) < 1 || Number(form.rating) > 5)
       e.rating = "Enter a rating between 1 and 5";
     return e;
@@ -60,6 +61,7 @@ export default function Gardners() {
     setEditingId(g._id);
     setForm({
       name: g.name,
+      email: g.email || "",
       location: g.location || "",
       services: (g.specialties || []).join(", "),
       rating: g.rating || "",
@@ -110,7 +112,12 @@ export default function Gardners() {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, specialties })
+        body: JSON.stringify({ 
+          ...form, 
+          specialties,
+          basePrice: form.basePrice ? Number(form.basePrice) : 0,
+          rating: Number(form.rating)
+        })
       });
       const result = await res.json();
       
@@ -153,12 +160,13 @@ export default function Gardners() {
             </div>
             <div className="p-8 flex flex-col gap-6 overflow-y-auto max-h-[75vh]">
               <div className="flex items-center gap-6">
-                <div className="w-20 h-20 bg-[#f0f4ee] rounded-3xl flex items-center justify-center shrink-0 border border-[#c8d9c0]">
+                <div className="w-20 h-20 bg-[#f0f4ee] rounded-3xl flex items-center justify-center shrink-0 border border-[#c8d9c0] relative">
                   <Loader2 className="w-10 h-10 text-[#3d6b45] opacity-20" />
                   <div className="absolute font-bold text-2xl text-[#3d6b45]">{viewingGardener.name.charAt(0)}</div>
                 </div>
                 <div>
                    <h3 className="text-2xl font-bold text-gray-900">{viewingGardener.name}</h3>
+                   <p className="text-sm text-gray-500 mb-2">{viewingGardener.email}</p>
                    <p className="text-[#3d6b45] font-medium flex items-center gap-1.5"><Star className="w-4 h-4 text-amber-400 fill-amber-400" /> {viewingGardener.rating || 0}</p>
                 </div>
               </div>
@@ -171,6 +179,14 @@ export default function Gardners() {
                  <div className="bg-[#f7f9f6] p-4 rounded-2xl">
                     <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Experience</p>
                     <p className="text-sm font-bold text-gray-800">{viewingGardener.experience || '0'} Years</p>
+                 </div>
+                 <div className="bg-[#f7f9f6] p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Base Price</p>
+                    <p className="text-sm font-bold text-gray-800">₹{viewingGardener.basePrice || '0'} /hr</p>
+                 </div>
+                 <div className="bg-[#f7f9f6] p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Location</p>
+                    <p className="text-sm font-bold text-gray-800 truncate">{viewingGardener.location || "N/A"}</p>
                  </div>
               </div>
 
@@ -291,8 +307,8 @@ export default function Gardners() {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-[#e8ede6]">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Add New Gardener</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Fill in the details to register a professional</p>
+                <h2 className="text-lg font-bold text-gray-900">{editingId ? "Edit Gardener Profile" : "Add New Gardener"}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{editingId ? "Update professional details" : "Fill in the details to register a professional"}</p>
               </div>
               <button onClick={handleClose} className="p-2 hover:bg-[#f0f4ee] rounded-xl text-gray-400 hover:text-gray-600 transition-colors">
                 <X className="w-5 h-5" />
@@ -302,50 +318,83 @@ export default function Gardners() {
             {/* Body */}
             <div className="px-6 py-5 flex flex-col gap-4 overflow-y-auto max-h-[65vh]">
 
-              {/* Name */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                  Full Name <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Rajesh Kumar"
-                  className={`w-full border rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 outline-none transition-all focus:ring-2 focus:ring-[#3d6b45]/20 focus:border-[#3d6b45] ${errors.name ? "border-red-300 bg-red-50" : "border-[#e8ede6] hover:border-[#c8d9c0]"}`}
-                />
-                {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name}</p>}
+              {/* Name & Email Group */}
+              <div className="flex gap-3">
+                <div className="flex-[2]">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                    Full Name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Rajesh Kumar"
+                    className={`w-full border rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 outline-none transition-all focus:ring-2 focus:ring-[#3d6b45]/20 focus:border-[#3d6b45] ${errors.name ? "border-red-300 bg-red-50" : "border-[#e8ede6] hover:border-[#c8d9c0]"}`}
+                  />
+                  {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name}</p>}
+                </div>
+                <div className="flex-[3]">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                    Email Address
+                  </label>
+                  <input
+                    type="email" name="email" value={form.email} onChange={handleChange} placeholder="rajesh@example.com"
+                    className="w-full border border-[#e8ede6] hover:border-[#c8d9c0] rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#3d6b45]/20 focus:border-[#3d6b45]"
+                  />
+                </div>
               </div>
 
-              {/* Location */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                  Location <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text" name="location" value={form.location} onChange={handleChange} placeholder="e.g. Mumbai"
-                  className={`w-full border rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 outline-none transition-all focus:ring-2 focus:ring-[#3d6b45]/20 focus:border-[#3d6b45] ${errors.location ? "border-red-300 bg-red-50" : "border-[#e8ede6] hover:border-[#c8d9c0]"}`}
-                />
-                {errors.location && <p className="text-xs text-red-400 mt-1">{errors.location}</p>}
+              {/* Location & Services */}
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                    Location <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text" name="location" value={form.location} onChange={handleChange} placeholder="e.g. Mumbai"
+                    className={`w-full border rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 outline-none transition-all focus:ring-2 focus:ring-[#3d6b45]/20 focus:border-[#3d6b45] ${errors.location ? "border-red-300 bg-red-50" : "border-[#e8ede6] hover:border-[#c8d9c0]"}`}
+                  />
+                  {errors.location && <p className="text-xs text-red-400 mt-1">{errors.location}</p>}
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                    Primary Service <span className="text-red-400">*</span>
+                  </label>
+                  <select
+                    name="services" value={form.services} onChange={handleChange}
+                    className={`w-full border rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#3d6b45]/20 focus:border-[#3d6b45] bg-white cursor-pointer ${errors.services ? "border-red-300 bg-red-50" : "border-[#e8ede6] hover:border-[#c8d9c0]"}`}
+                  >
+                    <option value="" disabled>Select a service</option>
+                    {serviceOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  {errors.services && <p className="text-xs text-red-400 mt-1">{errors.services}</p>}
+                </div>
               </div>
 
-              {/* Services */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                  Services <span className="text-red-400">*</span>
-                </label>
-                <select
-                  name="services" value={form.services} onChange={handleChange}
-                  className={`w-full border rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#3d6b45]/20 focus:border-[#3d6b45] bg-white cursor-pointer ${errors.services ? "border-red-300 bg-red-50" : "border-[#e8ede6] hover:border-[#c8d9c0]"}`}
-                >
-                  <option value="" disabled>Select a service</option>
-                  {serviceOptions.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-                {errors.services && <p className="text-xs text-red-400 mt-1">{errors.services}</p>}
+              {/* Rate & Experience */}
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                    Base Rate (₹/hr)
+                  </label>
+                  <input
+                    type="number" name="basePrice" value={form.basePrice} onChange={handleChange} placeholder="500"
+                    className="w-full border border-[#e8ede6] hover:border-[#c8d9c0] rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#3d6b45]/20 focus:border-[#3d6b45]"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                    Experience (Years)
+                  </label>
+                  <input
+                    type="text" name="experience" value={form.experience} onChange={handleChange} placeholder="5+"
+                    className="w-full border border-[#e8ede6] hover:border-[#c8d9c0] rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#3d6b45]/20 focus:border-[#3d6b45]"
+                  />
+                </div>
               </div>
 
               {/* Rating & Status */}
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                    Rating <span className="text-red-400">*</span>
+                    Initial Rating <span className="text-red-400">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-400 text-sm">★</span>
@@ -369,6 +418,18 @@ export default function Gardners() {
                     <option value="inactive">Inactive</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                  About / Bio
+                </label>
+                <textarea
+                  name="bio" value={form.bio} onChange={handleChange}
+                  placeholder="Tell clients about their expertise..." rows={3}
+                  className="w-full border border-[#e8ede6] rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 outline-none transition-all focus:ring-2 focus:ring-[#3d6b45]/20 focus:border-[#3d6b45] hover:border-[#c8d9c0] bg-white resize-none"
+                />
               </div>
             </div>
 
