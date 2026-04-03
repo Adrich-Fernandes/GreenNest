@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart, Leaf, Menu, X, Search } from "lucide-react";
 import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from "@clerk/clerk-react";
@@ -16,7 +16,7 @@ const API_BASE = "http://localhost:8000/api/products";
 
 export default function UserNavBar() {
   const [mobileOpen, setMobileOpen]       = useState(false);
-  const [cartCount]                        = useState(0);
+  const [cartCount, setCartCount]          = useState(0);
   const [searchOpen, setSearchOpen]        = useState(false);
   const [query, setQuery]                  = useState("");
   const [results, setResults]              = useState([]);
@@ -27,7 +27,7 @@ export default function UserNavBar() {
   const inputRef                           = useRef(null);
   const location                           = useLocation();
   const navigate                           = useNavigate();
-  const { isSignedIn }                     = useAuth();
+  const { isSignedIn, getToken }           = useAuth();
 
   const filteredNavLinks = navLinks.filter((link) => {
     if (["Orders", "Appointments", "My Queries"].includes(link.label)) {
@@ -52,6 +52,34 @@ export default function UserNavBar() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // Fetch cart count
+  const fetchCartCount = useCallback(async () => {
+    if (!isSignedIn) {
+      setCartCount(0);
+      return;
+    }
+    try {
+      const token = await getToken();
+      const res = await fetch("http://localhost:8000/api/cart", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const count = (data.data ?? []).reduce((sum, item) => sum + (item.quantity ?? item.qty ?? 1), 0);
+        setCartCount(count);
+      }
+    } catch {
+      // silent
+    }
+  }, [isSignedIn, getToken]);
+
+  useEffect(() => {
+    fetchCartCount();
+    const handleCartUpdate = () => fetchCartCount();
+    window.addEventListener("cartUpdated", handleCartUpdate);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
+  }, [fetchCartCount]);
 
   // Focus input when search opens
   useEffect(() => {

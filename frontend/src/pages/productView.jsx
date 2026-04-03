@@ -36,6 +36,7 @@ export default function ProductView() {
       const data = await res.json();
       if (data.success) {
         alert("Added to cart! 🌿");
+        window.dispatchEvent(new Event("cartUpdated"));
       } else {
         alert(data.message || "Failed to add to cart");
       }

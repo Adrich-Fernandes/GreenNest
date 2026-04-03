@@ -141,6 +141,7 @@ export default function Cart() {
       });
       const data  = await res.json();
       if (!data.success) throw new Error();
+      window.dispatchEvent(new Event("cartUpdated"));
     } catch { setItems(oldItems); }
     finally  { setUpdatingId(null); }
   };
@@ -159,6 +160,7 @@ export default function Cart() {
       });
       const data  = await res.json();
       if (!data.success) throw new Error();
+      window.dispatchEvent(new Event("cartUpdated"));
     } catch { setItems(oldItems); }
     finally  { setRemovingId(null); }
   };

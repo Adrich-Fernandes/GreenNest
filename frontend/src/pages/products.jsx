@@ -63,6 +63,7 @@ export default function Products() {
       if (data.success) {
         // Optional: show a toast or success state
         alert("Added to cart! 🌿");
+        window.dispatchEvent(new Event("cartUpdated"));
       }
     } catch (err) {
       console.error("Cart error:", err);
