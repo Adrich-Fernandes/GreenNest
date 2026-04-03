@@ -1,4 +1,4 @@
-import { Eye, Pencil, Loader2, Check, X, RotateCcw, AlertCircle, MessageSquare } from "lucide-react";
+import { Eye, Pencil, Loader2, Check, X, RotateCcw, AlertCircle, MessageSquare, Calendar, Clock } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
@@ -41,8 +41,12 @@ export default function Returns() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updateStatus = async (orderId, statusKey, label) => {
+  const updateStatus = async (orderId, statusKey, label, extraData = {}) => {
     setUpdatingId(orderId);
+
+    // Optimistic Update
+    setOrders(prev => prev.map(o => o._id === orderId ? { ...o, statusKey, status: label, ...extraData } : o));
+
     try {
       const token = await getToken();
       const res = await fetch(`${API_BASE}/${orderId}/status`, {
@@ -54,7 +58,8 @@ export default function Returns() {
         body: JSON.stringify({ 
           statusKey, 
           status: label,
-          trackingLabel: label
+          trackingLabel: label,
+          ...extraData
         })
       });
       const data = await res.json();
@@ -114,6 +119,7 @@ export default function Returns() {
                     <th className="text-left px-6 py-5 font-bold">Reason & Details</th>
                     <th className="text-left px-6 py-5 font-bold">Product(s)</th>
                     <th className="text-left px-6 py-5 font-bold">Ref. Amount</th>
+                    <th className="text-left px-6 py-5 font-bold">Pickup Schedule</th>
                     <th className="text-left px-6 py-5 font-bold">Current Status</th>
                     <th className="text-right px-6 py-5 font-bold">Actions</th>
                   </tr>
@@ -150,6 +156,20 @@ export default function Returns() {
                       <td className="px-6 py-5">
                         <div className="font-bold text-gray-900 text-base">₹{o.total.toLocaleString("en-IN")}</div>
                         <p className="text-[10px] text-gray-400 uppercase tracking-tight font-bold">{new Date(o.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })}</p>
+                      </td>
+                      <td className="px-6 py-5">
+                        {["return_requested", "return_confirmed"].includes(o.statusKey) ? (
+                          <div className="flex flex-col gap-1.5">
+                            <input 
+                              type="date"
+                              value={o.pickupDate ? new Date(o.pickupDate).toISOString().split('T')[0] : ""}
+                              onChange={(e) => updateStatus(o._id, o.statusKey, o.status, { pickupDate: e.target.value })}
+                              className="w-full max-w-[130px] bg-amber-50/30 border border-amber-100 rounded-xl px-2 py-1.5 text-[11px] font-bold text-amber-900 outline-none focus:ring-2 focus:ring-amber-200 transition-all cursor-pointer"
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-gray-300 italic">--</span>
+                        )}
                       </td>
                       <td className="px-6 py-5">
                         <span className={`text-[10px] font-bold px-3 py-1 rounded-full border shadow-sm ${statusStyles[o.statusKey] || ""}`}>

@@ -337,6 +337,12 @@ function OrderCard({ order, index, mounted, onReturnRequest }) {
                   <CalendarDays className="w-3 h-3" />
                   {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                 </span>
+                {order.expectedDeliveryDate && !["delivered", "cancelled", "refunded"].includes(order.statusKey) && (
+                  <span className="text-[11px] text-[#3d6b45] font-bold flex items-center gap-1 bg-[#f0f4ee] px-2 py-0.5 rounded-full border border-[#c8d9c0]">
+                    <Clock className="w-3 h-3" />
+                    Exp. Delivery: {new Date(order.expectedDeliveryDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -438,14 +444,9 @@ function OrderCard({ order, index, mounted, onReturnRequest }) {
                 <div className="flex items-center gap-2 text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-2 rounded-xl">
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Return Requested</span>
-                  {order.pickupDate && (
-                    <>
-                      <span className="text-orange-300">·</span>
                       <span className="flex items-center gap-1 text-orange-500">
-                        <PackageCheck className="w-3.5 h-3.5" /> Pickup: {order.pickupDate}
+                        <PackageCheck className="w-3.5 h-3.5" /> Pickup: {new Date(order.pickupDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                       </span>
-                    </>
-                  )}
                 </div>
               )}
 

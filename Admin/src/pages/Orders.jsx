@@ -1,4 +1,4 @@
-import { Eye, Pencil, Loader2, Check, X, ShoppingCart, Filter, ArrowRight, MapPin, User, Package, CreditCard, Search } from "lucide-react";
+import { Eye, Pencil, Loader2, Check, X, ShoppingCart, Filter, ArrowRight, MapPin, User, Package, CreditCard, Search, Clock, Calendar } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
@@ -55,8 +55,15 @@ export default function Orders() {
     setShowViewModal(true);
   };
 
-  const updateStatus = async (orderId, statusKey, label) => {
+  const updateStatus = async (orderId, statusKey, label, extraData = {}) => {
     setUpdatingId(orderId);
+    
+    // Optimistic Update
+    setOrders(prev => prev.map(o => o._id === orderId ? { ...o, statusKey, status: label, ...extraData } : o));
+    if (viewingOrder?._id === orderId) {
+      setViewingOrder(prev => ({ ...prev, statusKey, status: label, ...extraData }));
+    }
+
     try {
       const token = await getToken();
       const res = await fetch(`${API_BASE}/${orderId}/status`, {
@@ -68,15 +75,18 @@ export default function Orders() {
         body: JSON.stringify({ 
           statusKey, 
           status: label,
-          trackingLabel: label
+          trackingLabel: label,
+          ...extraData
         })
       });
       const data = await res.json();
       if (data.success) {
         setOrders(prev => prev.map(o => o._id === orderId ? data.data : o));
+        if (viewingOrder?._id === orderId) setViewingOrder(data.data);
       }
     } catch (error) {
-      alert("Failed to update status");
+      // Revert could be implemented here if needed
+      alert("Failed to update order");
     } finally {
       setUpdatingId(null);
     }
@@ -207,9 +217,47 @@ export default function Orders() {
                     <span>₹{viewingOrder.delivery || 0}</span>
                   </div>
                   <div className="flex justify-between pt-3 border-t border-emerald-500 font-black text-xl tracking-tighter">
-                    <span>Grand Total</span>
                     <span>₹{viewingOrder.total?.toLocaleString("en-IN")}</span>
                   </div>
+               </div>
+            </div>
+
+            {/* Scheduling & Logistics - NEW */}
+            <div className="bg-white border border-emerald-50 p-6 rounded-3xl flex flex-col gap-6 shadow-sm">
+               <div className="flex items-center justify-between border-b border-emerald-50 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-emerald-600" />
+                    <h3 className="font-bold text-gray-900 text-sm tracking-tight uppercase tracking-widest">Scheduling & Logistics</h3>
+                  </div>
+                  {updatingId === viewingOrder._id && <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />}
+               </div>
+               
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Expected Delivery */}
+                  {!["delivered", "cancelled", "refunded"].includes(viewingOrder.statusKey) && (
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Expected Delivery</label>
+                      <input 
+                        type="date"
+                        value={viewingOrder.expectedDeliveryDate ? new Date(viewingOrder.expectedDeliveryDate).toISOString().split('T')[0] : ""}
+                        onChange={(e) => updateStatus(viewingOrder._id, viewingOrder.statusKey, viewingOrder.status, { expectedDeliveryDate: e.target.value })}
+                        className="w-full bg-emerald-50/30 border border-emerald-100 rounded-xl px-4 py-2.5 text-xs font-bold text-emerald-900 outline-none focus:ring-2 focus:ring-emerald-100 transition-all cursor-pointer"
+                      />
+                    </div>
+                  )}
+
+                  {/* Pickup Date (For returns) */}
+                  {["return_requested", "return_confirmed"].includes(viewingOrder.statusKey) && (
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Scheduled Pickup</label>
+                      <input 
+                        type="date"
+                        value={viewingOrder.pickupDate ? new Date(viewingOrder.pickupDate).toISOString().split('T')[0] : ""}
+                        onChange={(e) => updateStatus(viewingOrder._id, viewingOrder.statusKey, viewingOrder.status, { pickupDate: e.target.value })}
+                        className="w-full bg-amber-50/30 border border-amber-100 rounded-xl px-4 py-2.5 text-xs font-bold text-amber-900 outline-none focus:ring-2 focus:ring-amber-100 transition-all cursor-pointer"
+                      />
+                    </div>
+                  )}
                </div>
             </div>
           </div>
@@ -290,6 +338,7 @@ export default function Orders() {
                     <th className="text-left px-6 py-5">Items</th>
                     <th className="text-left px-6 py-5">Amount</th>
                     <th className="text-left px-6 py-5">Date</th>
+                    <th className="text-left px-6 py-5">Expected</th>
                     <th className="text-left px-6 py-5">Status</th>
                     <th className="text-right px-6 py-5">Fulfillment</th>
                   </tr>
@@ -317,6 +366,23 @@ export default function Orders() {
                       <td className="px-6 py-5 font-bold text-gray-900 border-l border-emerald-50/10">₹{o.total.toLocaleString("en-IN")}</td>
                       <td className="px-6 py-5 text-gray-400 text-[10px] font-bold uppercase tracking-tight">
                         {new Date(o.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })}
+                      </td>
+                      <td className="px-6 py-5">
+                         {!["delivered", "cancelled", "refunded"].includes(o.statusKey) ? (
+                           <input 
+                              type="date"
+                              value={o.expectedDeliveryDate ? new Date(o.expectedDeliveryDate).toISOString().split('T')[0] : ""}
+                              onChange={(e) => updateStatus(o._id, o.statusKey, o.status, { expectedDeliveryDate: e.target.value })}
+                              className="w-full max-w-[130px] bg-emerald-50/30 border border-emerald-100 rounded-xl px-2 py-1.5 text-[11px] font-bold text-emerald-900 outline-none focus:ring-2 focus:ring-emerald-200 transition-all cursor-pointer"
+                           />
+                         ) : o.expectedDeliveryDate ? (
+                           <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-100 w-fit">
+                             <Clock className="w-3 h-3" />
+                             {new Date(o.expectedDeliveryDate).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })}
+                           </div>
+                         ) : (
+                           <span className="text-[10px] text-gray-300 italic">--</span>
+                         )}
                       </td>
                       <td className="px-6 py-5">
                         {["return_requested", "cancel_requested", "return_confirmed", "refunded", "cancelled"].includes(o.statusKey) ? (

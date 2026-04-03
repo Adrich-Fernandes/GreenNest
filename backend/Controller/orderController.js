@@ -47,6 +47,7 @@ const placeOrder = async (req, res) => {
       ],
       canReturn: false,
       canCancel: true,
+      expectedDeliveryDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000), // Default 4 days
     });
 
     // Clear user cart
@@ -81,6 +82,12 @@ const updateOrderStatus = async (req, res) => {
     if (status) order.status = status;
     if (statusKey) order.statusKey = statusKey;
     if (pickupDate) order.pickupDate = pickupDate;
+    
+    // Manual date overrides from Admin
+    if (req.body.expectedDeliveryDate !== undefined) order.expectedDeliveryDate = req.body.expectedDeliveryDate === "" ? null : req.body.expectedDeliveryDate;
+    if (req.body.returnDate !== undefined) order.returnDate = req.body.returnDate === "" ? null : req.body.returnDate;
+    // req.body.pickupDate might be handled above, we should override it identically if passed
+    if (req.body.pickupDate !== undefined) order.pickupDate = req.body.pickupDate === "" ? null : req.body.pickupDate;
 
     // Sync tracking steps for the 4 standard statuses
     const standardKeys = ["ordered", "shipped", "out_for_delivery", "delivered"];
@@ -189,6 +196,8 @@ const getUserOrders = async (req, res) => {
       canCancel: order.canCancel,
       returnStatus: order.returnStatus,
       pickupDate: order.pickupDate,
+      returnDate: order.returnDate,
+      expectedDeliveryDate: order.expectedDeliveryDate,
     }));
 
     res.status(200).json({ success: true, count: formattedOrders.length, data: formattedOrders });
@@ -220,11 +229,10 @@ const requestReturn = async (req, res) => {
     order.returnStatus = "return_requested";
     order.returnReason = reason;
     order.returnDetails = details;
+    order.returnDate = new Date();
     
     // Set a mock pickup date for 2 days from now
-    const pickup = new Date();
-    pickup.setDate(pickup.getDate() + 2);
-    order.pickupDate = pickup.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+    order.pickupDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
 
     // Update the tracking log
     order.tracking.push({
