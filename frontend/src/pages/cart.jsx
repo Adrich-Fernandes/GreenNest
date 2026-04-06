@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Trash2, Plus, Minus, ShoppingBag, Leaf, ArrowRight,
-  Loader2, MapPin, ChevronDown, ChevronUp, Check, X
+  Loader2, MapPin, ChevronDown, ChevronUp, Check, X,
+  Banknote, CreditCard
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
@@ -57,6 +58,7 @@ export default function Cart() {
   const [updatingId, setUpdatingId] = useState(null);
   const [removingId, setRemovingId] = useState(null);
   const [error, setError]           = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
 
   // Address state
   const [addressOpen, setAddressOpen]       = useState(false);
@@ -227,6 +229,7 @@ export default function Cart() {
   // ── Place order ──────────────────────────────────────────────────────────────
   const handlePlaceOrder = async () => {
     if (!selectedAddress) { setAddressOpen(true); return; }
+    if (!paymentMethod) { alert("Please select a payment method (Cash or Online)"); return; }
     setPlacingOrder(true);
     try {
       const token = await getToken();
@@ -236,7 +239,10 @@ export default function Cart() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}` 
         },
-        body: JSON.stringify({ address: selectedAddress })
+        body: JSON.stringify({ 
+          address: selectedAddress,
+          paymentMethod 
+        })
       });
       const data = await res.json();
       if (data.success) {
@@ -455,6 +461,25 @@ export default function Cart() {
                         <p>{selectedAddress.addressline1}{selectedAddress.addressline2 ? `, ${selectedAddress.addressline2}` : ""}</p>
                         <p>{selectedAddress.city}, {selectedAddress.state} – {selectedAddress.pincode}</p>
                         <p className="text-gray-400">{selectedAddress.phone}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Payment Method */}
+                  {selectedAddress && (
+                    <div className="flex flex-col gap-2 pt-1">
+                      <h3 className="font-bold text-gray-900 text-xs">Payment Method <span className="text-red-500">*</span></h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className={`cursor-pointer rounded-xl border flex flex-col items-center justify-center p-3 transition-all ${paymentMethod === 'cash' ? 'border-[#3d6b45] bg-[#f0f4ee] text-[#3d6b45]' : 'border-[#e8ede6] bg-[#f7f9f6] text-gray-400 hover:border-[#b8d4bc]'}`}>
+                           <input type="radio" name="paymentMethod" value="cash" checked={paymentMethod==='cash'} onChange={(e)=>setPaymentMethod(e.target.value)} className="hidden"/>
+                           <Banknote className="w-5 h-5 mb-1" />
+                           <span className="font-semibold text-xs">Cash on Delivery</span>
+                        </label>
+                        <label className={`cursor-pointer rounded-xl border flex flex-col items-center justify-center p-3 transition-all ${paymentMethod === 'online' ? 'border-[#3d6b45] bg-[#f0f4ee] text-[#3d6b45]' : 'border-[#e8ede6] bg-[#f7f9f6] text-gray-400 hover:border-[#b8d4bc]'}`}>
+                           <input type="radio" name="paymentMethod" value="online" checked={paymentMethod==='online'} onChange={(e)=>setPaymentMethod(e.target.value)} className="hidden"/>
+                           <CreditCard className="w-5 h-5 mb-1" />
+                           <span className="font-semibold text-xs">Pay Online</span>
+                        </label>
                       </div>
                     </div>
                   )}

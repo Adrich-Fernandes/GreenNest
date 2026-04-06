@@ -42,6 +42,7 @@ const orderSchema = new mongoose.Schema(
     tracking: [trackingSchema],
     canReturn: { type: Boolean, default: false },
     canCancel: { type: Boolean, default: true },
+    paymentMethod: { type: String, enum: ["cash", "online"], default: "cash" },
     returnStatus: { type: String, default: null },
     returnDate: { type: Date, default: null },
     pickupDate: { type: Date, default: null },

@@ -5,7 +5,7 @@ const User = require("../models/userModel");
 // Place a new order
 const placeOrder = async (req, res) => {
   try {
-    const { address } = req.body;
+    const { address, paymentMethod } = req.body;
     const user = await User.findById(req.user._id).populate("cart.product");
 
     if (!user.cart || user.cart.length === 0) {
@@ -30,6 +30,7 @@ const placeOrder = async (req, res) => {
       user: req.user._id,
       items: orderItems,
       address,
+      paymentMethod: paymentMethod || "cash",
       subtotal,
       delivery,
       total,
@@ -188,6 +189,7 @@ const getUserOrders = async (req, res) => {
         image: item.image,
       })),
       address: order.address,
+      paymentMethod: order.paymentMethod,
       subtotal: order.subtotal,
       delivery: order.delivery,
       total: order.total,
