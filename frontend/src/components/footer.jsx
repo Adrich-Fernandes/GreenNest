@@ -66,8 +66,8 @@ export default function Footer() {
               <div className="flex flex-col gap-4">
                 <h4 className="text-white font-bold text-xs uppercase tracking-widest opacity-40">Contact Support</h4>
                 <div className="flex flex-col gap-2">
-                  <a href="mailto:help@greennest.com" className="text-[#a8c4a0] text-sm hover:text-white transition-colors">help@greennest.com</a>
-                  <a href="tel:+918888888888" className="text-[#a8c4a0] text-sm hover:text-white transition-colors">+91 88888 88888</a>
+                  <Link to="mailto:help@greennest.com" className="text-[#a8c4a0] text-sm hover:text-white transition-colors">help@greennest.com</Link>
+                  <Link to="tel:+918888888888" className="text-[#a8c4a0] text-sm hover:text-white transition-colors">+91 88888 88888</Link>
                 </div>
               </div>
             </div>
