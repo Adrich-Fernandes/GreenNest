@@ -17,4 +17,10 @@ router.patch("/:id/update-request", queryController.requestUpdate);
 // Path: /api/queries/:id/reply (Admin)
 router.patch("/:id/reply", queryController.replyToQuery);
 
+// Path: /api/queries/:id/reopen (Customer)
+router.patch("/:id/reopen", queryController.reopenQuery);
+
+// Path: /api/queries/:id/status (Admin)
+router.patch("/:id/status", queryController.updateQueryStatus);
+
 module.exports = router;

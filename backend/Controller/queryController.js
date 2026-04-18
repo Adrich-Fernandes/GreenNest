@@ -120,3 +120,59 @@ exports.replyToQuery = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+// Reopen an inquiry (Customer)
+exports.reopenQuery = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const query = await Query.findByIdAndUpdate(
+      id,
+      { status: "Reopened", adminReply: "" },
+      { new: true }
+    );
+
+    if (!query) {
+      return res.status(404).json({ success: false, message: "Inquiry not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Issue reopened successfully!",
+      query
+    });
+  } catch (error) {
+    console.error("Error reopening inquiry:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// Update inquiry status (Admin)
+exports.updateQueryStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ success: false, message: "Status is required" });
+    }
+
+    const query = await Query.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
+    if (!query) {
+      return res.status(404).json({ success: false, message: "Inquiry not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Status updated successfully!",
+      query
+    });
+  } catch (error) {
+    console.error("Error updating inquiry status:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};

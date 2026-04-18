@@ -6,7 +6,7 @@ const querySchema = new mongoose.Schema(
     email: { type: String, required: true },
     query: { type: String, required: true },
     clerkId: { type: String, required: false },
-    status: { type: String, enum: ["Pending", "Update Requested", "Resolved"], default: "Pending" },
+    status: { type: String, enum: ["Pending", "In Progress", "Update Requested", "Resolved", "Reopened"], default: "Pending" },
     adminReply: { type: String, default: "" },
   },
   { timestamps: true }

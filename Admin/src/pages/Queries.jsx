@@ -11,12 +11,18 @@ export default function Queries() {
   const [sendingReply, setSendingReply] = useState(false);
 
   useEffect(() => {
-    fetchQueries();
+    fetchQueries(true); // Initial load with spinner
+    
+    const interval = setInterval(() => {
+      fetchQueries(false); // Background update without spinner
+    }, 10000); // Refresh every 10 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchQueries = async () => {
+  const fetchQueries = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const res = await fetch("http://localhost:8000/api/queries/all");
       const data = await res.json();
       if (data.success) {
@@ -25,7 +31,7 @@ export default function Queries() {
     } catch (error) {
       console.error("Error fetching queries:", error);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -51,10 +57,32 @@ export default function Queries() {
     }
   };
 
+  const handleStatusChange = async (queryId, newStatus) => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/queries/${queryId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setQueries(prev => prev.map(q => q._id === queryId ? { ...q, status: newStatus } : q));
+        if (selectedQuery && selectedQuery._id === queryId) {
+          setSelectedQuery(prev => ({ ...prev, status: newStatus }));
+        }
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  };
+
   const getRandomStatusColor = (status) => {
     switch (status) {
       case "Resolved": return "bg-emerald-50 text-[#3d6b45] border-emerald-100";
       case "Update Requested": return "bg-amber-50 text-amber-600 border-amber-100";
+      case "Reopened": return "bg-purple-50 text-purple-600 border-purple-100";
+      case "In Progress": return "bg-blue-50 text-blue-600 border-blue-100";
+      case "Pending": return "bg-gray-50 text-gray-500 border-gray-200";
       default: return "bg-gray-50 text-gray-400 border-gray-100";
     }
   };
@@ -98,7 +126,7 @@ export default function Queries() {
               />
             </div>
             <button 
-              onClick={fetchQueries}
+              onClick={() => fetchQueries(true)}
               className="p-2.5 bg-white border border-[#e8ede6] rounded-xl text-gray-600 hover:text-[#3d6b45] hover:bg-[#f0f4ee] transition-all shadow-sm"
               title="Refresh"
             >
@@ -108,14 +136,25 @@ export default function Queries() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white p-6 rounded-2xl border border-[#e8ede6] shadow-sm flex items-center gap-5 group hover:border-[#3d6b45]/30 transition-all">
             <div className="w-12 h-12 bg-[#f0f4ee] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
               <MessageSquare className="w-6 h-6 text-[#3d6b45]" />
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Inquiries</p>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total</p>
               <p className="text-2xl font-black text-gray-800">{queries.length}</p>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-2xl border border-[#e8ede6] shadow-sm flex items-center gap-5 group hover:border-blue-200 transition-all">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">In Progress</p>
+              <p className="text-2xl font-black text-gray-800">
+                {queries.filter(q => q.status === "In Progress").length}
+              </p>
             </div>
           </div>
           <div className="bg-white p-6 rounded-2xl border border-[#e8ede6] shadow-sm flex items-center gap-5 group hover:border-amber-200 transition-all">
@@ -123,7 +162,7 @@ export default function Queries() {
               <AlertCircle className="w-6 h-6 text-amber-500" />
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Update Requested</p>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Requests</p>
               <p className="text-2xl font-black text-gray-800">
                 {queries.filter(q => q.status === "Update Requested").length}
               </p>
@@ -203,10 +242,18 @@ export default function Queries() {
                         </div>
                       </td>
                       <td className="px-6 py-5 text-center">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase rounded-full border shadow-sm transition-colors ${getRandomStatusColor(query.status)}`}>
-                          {query.status === "Resolved" ? <CheckCircle2 className="w-3 h-3" /> : <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />} 
-                          {query.status || "Pending"}
-                        </span>
+                        <select 
+                          value={query.status || "Pending"} 
+                          onChange={(e) => handleStatusChange(query._id, e.target.value)}
+                          className={`appearance-none text-[10px] font-black uppercase rounded-full border shadow-sm transition-colors px-3 py-1 cursor-pointer focus:outline-none ${getRandomStatusColor(query.status)}`}
+                        >
+                          <option value="Pending">Pending</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Resolved">Resolved</option>
+                          {query.status !== "Pending" && query.status !== "In Progress" && query.status !== "Resolved" && (
+                            <option value={query.status}>{query.status}</option>
+                          )}
+                        </select>
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-2 text-xs font-bold text-gray-500 italic">
@@ -273,7 +320,18 @@ export default function Queries() {
                    </div>
                    <div className="p-4 bg-[#fcfdfc] rounded-2xl border border-[#e8ede6]">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 leading-none">Status</p>
-                      <p className="text-xs font-bold text-[#3d6b45] uppercase tracking-widest">{selectedQuery.status || "Pending"}</p>
+                      <select 
+                        value={selectedQuery.status || "Pending"} 
+                        onChange={(e) => handleStatusChange(selectedQuery._id, e.target.value)}
+                        className={`w-full bg-transparent text-xs font-bold uppercase tracking-widest focus:outline-none cursor-pointer ${getRandomStatusColor(selectedQuery.status).split(' ')[1]}`}
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        {selectedQuery.status !== "Pending" && selectedQuery.status !== "In Progress" && selectedQuery.status !== "Resolved" && (
+                          <option value={selectedQuery.status}>{selectedQuery.status}</option>
+                        )}
+                      </select>
                    </div>
                 </div>
 

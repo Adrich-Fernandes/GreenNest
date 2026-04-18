@@ -14,13 +14,26 @@ export default function MyQueries() {
   useEffect(() => {
     setMounted(true);
     if (isLoaded && isSignedIn && user) {
-      fetchUserQueries();
+      fetchUserQueries(true); // Initial load with spinner
+      
+      const interval = setInterval(() => {
+        fetchUserQueries(false); // Background update
+      }, 10000); // Every 10 seconds
+
+      // Listen for immediate refresh from footer submission
+      const handleQuerySubmitted = () => fetchUserQueries(false);
+      window.addEventListener("querySubmitted", handleQuerySubmitted);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener("querySubmitted", handleQuerySubmitted);
+      };
     }
   }, [isLoaded, isSignedIn, user]);
 
-  const fetchUserQueries = async () => {
+  const fetchUserQueries = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const res = await fetch(`http://localhost:8000/api/queries/user/${user.id}`);
       const data = await res.json();
       if (data.success) {
@@ -29,7 +42,7 @@ export default function MyQueries() {
     } catch (error) {
       console.error("Error fetching user queries:", error);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -49,10 +62,30 @@ export default function MyQueries() {
     }
   };
 
+  const handleReopenRequest = async (queryId) => {
+    if (!window.confirm("Are you sure you want to reopen this issue? Our support team will be notified.")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:8000/api/queries/${queryId}/reopen`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setQueries(prev => prev.map(q => q._id === queryId ? { ...q, status: "Reopened" } : q));
+      }
+    } catch (error) {
+      console.error("Error reopening request:", error);
+    }
+  };
+
   const getRandomStatusColor = (status) => {
     switch (status) {
       case "Resolved": return "bg-blue-50 text-blue-600 border-blue-100";
       case "Update Requested": return "bg-amber-50 text-amber-600 border-amber-100";
+      case "Reopened": return "bg-purple-50 text-purple-600 border-purple-100";
       default: return "bg-[#f0f4ee] text-[#3d6b45] border-[#e8ede6]";
     }
   };
@@ -159,14 +192,22 @@ export default function MyQueries() {
 
                 <div className="mt-6 pt-6 border-t border-[#f7f9f6] flex items-center justify-between">
                    <p className="text-xs font-bold text-gray-400 italic">
-                      {q.status === "Resolved" ? "This inquiry has been successfully addressed." : "Our support team has successfully received this inquiry."}
+                      {q.status === "Resolved" ? "This inquiry has been successfully addressed." : q.status === "Reopened" ? "This inquiry has been reopened and is under review." : "Our support team has successfully received this inquiry."}
                    </p>
-                   {q.status !== "Resolved" && q.status !== "Update Requested" && (
+                   {q.status !== "Resolved" && q.status !== "Update Requested" && q.status !== "Reopened" && (
                     <button 
                       onClick={() => handleUpdateRequest(q._id)}
                       className="flex items-center gap-1.5 text-xs font-black text-[#3d6b45] hover:gap-2.5 transition-all uppercase tracking-widest group/btn"
                     >
                         Request Update <ChevronRight className="w-4 h-4" />
+                    </button>
+                   )}
+                   {q.status === "Resolved" && (
+                    <button 
+                      onClick={() => handleReopenRequest(q._id)}
+                      className="flex items-center gap-1.5 text-xs font-black text-purple-600 hover:gap-2.5 transition-all uppercase tracking-widest group/btn"
+                    >
+                      Issue Not Solved yet<ChevronRight className="w-4 h-4" />
                     </button>
                    )}
                 </div>
