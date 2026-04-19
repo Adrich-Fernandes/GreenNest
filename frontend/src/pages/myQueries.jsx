@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
-import { MessageSquare, Calendar, ArrowRight, Loader2, Inbox, AlertCircle, ChevronRight, CheckCircle2 } from "lucide-react";
+import { MessageSquare, Calendar, ArrowRight, Loader2, Inbox, AlertCircle, ChevronRight, CheckCircle2, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function MyQueries() {
@@ -10,6 +10,18 @@ export default function MyQueries() {
   const [queries, setQueries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [formData, setFormData] = useState({ name: "", email: "", query: "" });
+  const [submitStatus, setSubmitStatus] = useState("idle"); // idle, loading, success, error
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn && user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.fullName || "",
+        email: user.primaryEmailAddress?.emailAddress || ""
+      }));
+    }
+  }, [isLoaded, isSignedIn, user]);
 
   useEffect(() => {
     setMounted(true);
@@ -43,6 +55,32 @@ export default function MyQueries() {
       console.error("Error fetching user queries:", error);
     } finally {
       if (showLoading) setLoading(false);
+    }
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitStatus("loading");
+    try {
+      const res = await fetch("http://localhost:8000/api/queries/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          clerkId: user?.id || null
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubmitStatus("success");
+        setFormData(prev => ({ ...prev, query: "" }));
+        fetchUserQueries(false); // Refresh list immediately
+        setTimeout(() => setSubmitStatus("idle"), 5000);
+      } else {
+        setSubmitStatus("error");
+      }
+    } catch (error) {
+      setSubmitStatus("error");
     }
   };
 
@@ -111,6 +149,76 @@ export default function MyQueries() {
           </div>
           <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">My Queries</h1>
           <p className="text-sm text-gray-500 font-medium max-w-lg mb-10">Review and track all your messages sent to the GreenNest support team. We usually respond within 24–48 hours.</p>
+        </div>
+
+        {/* New Query Form Section */}
+        <div className={`mb-16 transition-all duration-1000 delay-300 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
+          <div className="bg-[#2a4a30] p-8 md:p-10 rounded-[32px] border border-emerald-800/30 shadow-2xl relative overflow-hidden group flex flex-col lg:flex-row gap-8 items-center">
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+              <Send className="w-48 h-48 text-white -rotate-12" />
+            </div>
+            
+            <div className="flex-1 relative z-10 text-center lg:text-left">
+              <h3 className="text-white font-black text-2xl mb-2 tracking-tight">Need expert advice?</h3>
+              <p className="text-[#a8c4a0] text-sm font-medium max-w-sm leading-relaxed mx-auto lg:mx-0">
+                Send us a new query or ask anything about your plants. Our experts are here to help you grow.
+              </p>
+            </div>
+
+            <div className="flex-[1.5] relative z-10 w-full lg:pl-10 lg:border-l border-emerald-800/50">
+               <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                   <input 
+                     type="text" 
+                     placeholder="Your Name"
+                     disabled={isSignedIn || submitStatus === "loading"}
+                     value={formData.name}
+                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                     className="bg-[#1e3a22] border border-emerald-900/50 rounded-2xl px-5 py-3 text-sm text-white placeholder:text-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all disabled:opacity-60"
+                     required
+                   />
+                   <input 
+                     type="email" 
+                     placeholder="Email Address"
+                     disabled={isSignedIn || submitStatus === "loading"}
+                     value={formData.email}
+                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                     className="bg-[#1e3a22] border border-emerald-900/50 rounded-2xl px-5 py-3 text-sm text-white placeholder:text-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all disabled:opacity-60"
+                     required
+                   />
+                 </div>
+                 <textarea 
+                   placeholder="Describe your query..."
+                   value={formData.query}
+                   disabled={submitStatus === "loading"}
+                   onChange={(e) => setFormData(prev => ({ ...prev, query: e.target.value }))}
+                   className="bg-[#1e3a22] border border-emerald-900/50 rounded-2xl px-5 py-3 text-sm text-white placeholder:text-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all h-24 resize-none"
+                   required
+                 />
+                 <button 
+                   type="submit"
+                   disabled={submitStatus === "loading" || submitStatus === "success"}
+                   className={`h-11 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xl ${
+                     submitStatus === "success" 
+                       ? "bg-emerald-500 text-white" 
+                       : submitStatus === "error"
+                       ? "bg-red-500 text-white"
+                       : "bg-white text-[#1e3a22] hover:bg-[#f0f4ee]"
+                   }`}
+                 >
+                   {submitStatus === "loading" ? (
+                     <Loader2 className="w-4 h-4 animate-spin" />
+                   ) : submitStatus === "success" ? (
+                     <><CheckCircle2 className="w-5 h-5" /> Message Sent!</>
+                   ) : submitStatus === "error" ? (
+                     "Try Again"
+                   ) : (
+                     <><Send className="w-4 h-4" /> Send Inquiry</>
+                   )}
+                 </button>
+               </form>
+            </div>
+          </div>
         </div>
 
         {loading ? (

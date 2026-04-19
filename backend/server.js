@@ -9,6 +9,8 @@ const queryRoutes = require("./Routes/queryRoutes");
 const adminRoutes = require("./Routes/adminRoutes");
 const orderRoutes = require("./Routes/orderRoutes");
 const gardenerRoutes = require("./Routes/gardenerRoutes");
+const contactRoutes = require("./Routes/contactRoutes");
+
 
 const app = express();
 
@@ -25,6 +27,8 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/gardener", gardenerRoutes);
 app.use("/api/queries", queryRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/contact", contactRoutes);
+
 
 // Health check
 app.get("/", (req, res) => {
