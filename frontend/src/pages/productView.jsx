@@ -174,7 +174,14 @@ export default function ProductView() {
               )}
 
               {/* Price */}
-              <p className="text-4xl font-black text-[#3d6b45]">₹{product.price}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-4xl font-black text-[#3d6b45]">₹{product.price}</p>
+                {product.stock <= 10 && product.stock > 0 && (
+                  <span className="text-sm font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 animate-pulse">
+                    Only {product.stock} left in stock!
+                  </span>
+                )}
+              </div>
 
               {/* Description */}
               {product.description && (
@@ -183,17 +190,19 @@ export default function ProductView() {
 
               {/* Quantity + Add to Cart */}
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-3 border border-[#c8d9c0] rounded-xl px-4 py-2.5 bg-white">
+                <div className={`flex items-center gap-3 border border-[#c8d9c0] rounded-xl px-4 py-2.5 bg-white ${product.stock <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}>
                   <button
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="text-gray-500 hover:text-[#3d6b45] font-bold text-lg w-5 h-5 flex items-center justify-center transition-colors"
+                    disabled={product.stock <= 0}
+                    className="text-gray-500 hover:text-[#3d6b45] font-bold text-lg w-5 h-5 flex items-center justify-center transition-colors disabled:cursor-not-allowed"
                   >
                     −
                   </button>
                   <span className="text-sm font-semibold text-gray-900 w-5 text-center">{quantity}</span>
                   <button
                     onClick={() => setQuantity((q) => q + 1)}
-                    className="text-gray-500 hover:text-[#3d6b45] font-bold text-lg w-5 h-5 flex items-center justify-center transition-colors"
+                    disabled={product.stock <= 0}
+                    className="text-gray-500 hover:text-[#3d6b45] font-bold text-lg w-5 h-5 flex items-center justify-center transition-colors disabled:cursor-not-allowed"
                   >
                     +
                   </button>
@@ -201,15 +210,15 @@ export default function ProductView() {
 
                 <button
                   onClick={handleAddToCart}
-                  disabled={!product.inStock || adding}
+                  disabled={product.stock <= 0 || adding}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all duration-150 hover:scale-[1.02] active:scale-95 ${
-                    product.inStock && !adding
-                      ? "bg-[#3d6b45] hover:bg-[#345c3c] text-white"
+                    product.stock > 0 && !adding
+                      ? "bg-[#3d6b45] hover:bg-[#345c3c] text-white shadow-md hover:shadow-lg"
                       : "bg-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
                 >
                   <ShoppingCart className={`w-4 h-4 ${adding ? "animate-bounce" : ""}`} />
-                  {adding ? "Adding..." : "Add to Cart"}
+                  {product.stock <= 0 ? "Sold Out" : adding ? "Adding..." : "Add to Cart"}
                 </button>
               </div>
 

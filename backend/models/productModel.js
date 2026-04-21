@@ -58,4 +58,17 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// ✅ Pre-save hook to automatically update status and inStock based on stock count
+productSchema.pre("save", async function () {
+  this.inStock = this.stock > 0;
+  
+  if (this.stock <= 0) {
+    this.status = "Out of Stock";
+  } else if (this.stock <= 10) {
+    this.status = "Low Stock";
+  } else {
+    this.status = "Active";
+  }
+});
+
 module.exports = mongoose.model("Product", productSchema);

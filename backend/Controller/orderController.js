@@ -1,5 +1,6 @@
 const Order = require("../models/orderModel");
 const User = require("../models/userModel");
+const Product = require("../models/productModel");
 
 // Get logged in user's orders
 // Place a new order
@@ -12,7 +13,20 @@ const placeOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Cart is empty" });
     }
 
-    // Snapshot products and calculate totals
+    // 1. Check stock availability for all items first
+    for (const item of user.cart) {
+      if (!item.product) {
+        return res.status(404).json({ success: false, message: "One or more products in your cart no longer exist." });
+      }
+      if (item.product.stock < item.quantity) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Insufficient stock for ${item.product.name}. Only ${item.product.stock} left.` 
+        });
+      }
+    }
+
+    // 2. Snapshot products and calculate totals
     const orderItems = user.cart.map((item) => ({
       product: item.product._id,
       name: item.product.name,
@@ -25,6 +39,12 @@ const placeOrder = async (req, res) => {
     const subtotal = orderItems.reduce((acc, item) => acc + item.price * item.qty, 0);
     const delivery = subtotal >= 599 ? 0 : 49;
     const total = subtotal + delivery;
+
+    // 3. Decrement stock for each product
+    for (const item of user.cart) {
+      item.product.stock -= item.quantity;
+      await item.product.save(); // This will trigger the pre-save hook to update status/inStock
+    }
 
     const order = await Order.create({
       user: req.user._id,

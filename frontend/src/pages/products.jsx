@@ -106,9 +106,13 @@ export default function Products() {
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         (p.nursery || "").toLowerCase().includes(search.toLowerCase());
       const matchesCategory = selectedCategory === "All Types" || p.category === selectedCategory;
-      return matchesSearch && matchesCategory && p.status !== "Out of Stock";
+      return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
+      // Put Out of Stock products at the end
+      if (a.stock <= 0 && b.stock > 0) return 1;
+      if (a.stock > 0 && b.stock <= 0) return -1;
+      
       if (selectedSort === "Price: Low to High") return a.price - b.price;
       if (selectedSort === "Price: High to Low") return b.price - a.price;
       if (selectedSort === "Top Rated") return b.rating - a.rating;
@@ -206,7 +210,7 @@ export default function Products() {
                 <Link
                   to={`/plants/${product._id}`}
                   key={product._id}
-                  className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer group opacity-100 translate-y-0`}
+                  className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer group opacity-100 translate-y-0 ${product.stock <= 0 ? "opacity-75" : ""}`}
                   style={{ transitionDelay: `${i * 60}ms` }}
                 >
                   <div className="flex flex-row sm:flex-col">
@@ -215,21 +219,36 @@ export default function Products() {
                       <img
                         src={product.images?.[0] || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80"}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${product.stock <= 0 ? "grayscale-[0.5]" : ""}`}
                       />
+                      {/* Out of Stock Overlay */}
+                      {product.stock <= 0 && (
+                        <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                          <span className="bg-white/90 text-red-500 text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm uppercase tracking-wider">
+                            Out of Stock
+                          </span>
+                        </div>
+                      )}
                       {/* ✅ Show image count badge if more than 1 image */}
                       {product.images?.length > 1 && (
-                        <span className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
+                        <span className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full shadow-sm">
                           +{product.images.length - 1}
                         </span>
                       )}
-                      <span className="absolute top-2 left-2 bg-[#f0f4ee] text-[#3d6b45] text-xs font-semibold px-2 py-0.5 rounded-full">
+                      <span className="absolute top-2 left-2 bg-white/90 text-[#3d6b45] text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
                         {product.category}
                       </span>
                     </div>
                     <div className="flex flex-col justify-between flex-1 px-4 py-4 sm:pt-4 sm:pb-5">
                       <div className="flex flex-col gap-1">
-                        <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-tight">{product.name}</h3>
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-tight">{product.name}</h3>
+                          {product.stock <= 10 && product.stock > 0 && (
+                            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md">
+                              {product.stock} left
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-400">{product.nursery || "GreenNest"}</p>
                         <div className="flex items-center gap-1 mt-0.5">
                           <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
@@ -240,11 +259,19 @@ export default function Products() {
                         <span className="text-base sm:text-lg font-bold text-gray-900">₹{product.price}</span>
                         <button
                           onClick={(e) => handleAddToCart(e, product._id)}
-                          disabled={addingId === product._id}
-                          className="flex items-center gap-1 sm:gap-1.5 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95 disabled:opacity-50"
+                          disabled={addingId === product._id || product.stock <= 0}
+                          className={`flex items-center gap-1 sm:gap-1.5 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-150 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 ${
+                            product.stock <= 0 ? "bg-gray-400 cursor-not-allowed" : "bg-[#3d6b45] hover:bg-[#345c3c]"
+                          }`}
                         >
-                          <ShoppingCart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${addingId === product._id ? "animate-bounce" : ""}`} />
-                          {addingId === product._id ? "Adding..." : "Add"}
+                          {product.stock <= 0 ? (
+                            "Sold Out"
+                          ) : (
+                            <>
+                              <ShoppingCart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${addingId === product._id ? "animate-bounce" : ""}`} />
+                              {addingId === product._id ? "Adding..." : "Add"}
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>
