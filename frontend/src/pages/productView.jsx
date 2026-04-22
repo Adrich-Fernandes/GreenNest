@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Star, ShoppingCart, Truck, ShieldCheck, BookOpen, Leaf } from "lucide-react";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
+import { ProductViewSkeleton } from "../components/Skeleton";
 import { useAuth } from "@clerk/clerk-react";
 
 const API_BASE = "http://localhost:8000/api/products"; // ✅ fixed port + plural
@@ -70,9 +71,12 @@ export default function ProductView() {
     return (
       <>
         <UserNavBar />
-        <div className="min-h-screen bg-[#f7f9f6] flex items-center justify-center text-gray-400 text-sm">
-          Loading product...
+        <div className="min-h-screen bg-[#f7f9f6] px-6 md:px-16 py-10">
+          <div className="max-w-7xl mx-auto">
+            <ProductViewSkeleton />
+          </div>
         </div>
+        <Footer />
       </>
     );
   }

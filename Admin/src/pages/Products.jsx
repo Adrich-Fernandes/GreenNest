@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Eye, Pencil, Trash2, X, Upload } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, X, Upload, Search } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
 
 const API_BASE = "http://localhost:8000/api/products"; // ✅ fixed port + plural
@@ -36,6 +36,7 @@ export default function AdminProducts() {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // ✅ Multiple images state
   const [imageFiles, setImageFiles] = useState([]);         // new File objects to upload
@@ -164,6 +165,14 @@ export default function AdminProducts() {
     }
   };
 
+  const filteredProducts = products.filter((p) => {
+    const searchString = searchTerm.toLowerCase();
+    return (
+      (p.name || "").toLowerCase().includes(searchString) ||
+      (p.category || "").toLowerCase().includes(searchString)
+    );
+  });
+
   const handleEdit = (product) => {
     setEditProduct(product);
     setForm({
@@ -212,12 +221,24 @@ export default function AdminProducts() {
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Products</h1>
             <p className="text-sm text-gray-400 mt-1">Manage your plant and product listings</p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
-          >
-            <Plus className="w-4 h-4" /> Add Product
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="relative group">
+              <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-[#3d6b45] transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Search products..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-[#fcfdfc] border border-[#e8ede6] rounded-2xl pl-10 pr-4 py-2 text-xs font-medium text-gray-600 placeholder:text-gray-300 outline-none focus:ring-2 focus:ring-[#3d6b45]/10 focus:border-[#3d6b45] focus:bg-white transition-all w-64"
+              />
+            </div>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shrink-0"
+            >
+              <Plus className="w-4 h-4" /> Add Product
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-[#e8ede6]">
@@ -238,7 +259,7 @@ export default function AdminProducts() {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p, i) => (
+                  {filteredProducts.map((p, i) => (
                     <tr key={p._id} className={`border-b border-[#f0f4ee] hover:bg-[#fafcfa] transition-colors ${i === products.length - 1 ? "border-0" : ""}`}>
                       {/* ✅ Show first image as thumbnail in table */}
                       <td className="px-6 py-4">
@@ -273,8 +294,8 @@ export default function AdminProducts() {
                       </td>
                     </tr>
                   ))}
-                  {products.length === 0 && (
-                    <tr><td colSpan={7} className="text-center py-12 text-gray-400 text-sm">No products found. Add your first product!</td></tr>
+                  {filteredProducts.length === 0 && (
+                    <tr><td colSpan={7} className="text-center py-12 text-gray-400 text-sm">No products found. {searchTerm ? "Try a different search query." : "Add your first product!"}</td></tr>
                   )}
                 </tbody>
               </table>

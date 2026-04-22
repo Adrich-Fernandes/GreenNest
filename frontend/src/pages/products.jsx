@@ -3,6 +3,7 @@ import { Search, ShoppingCart, Star, ChevronDown } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
+import { ProductSkeleton } from "../components/Skeleton";
 
 import { useAuth } from "@clerk/clerk-react";
 
@@ -203,7 +204,9 @@ export default function Products() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-24 text-gray-400 text-sm">Loading products...</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 relative z-0">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <ProductSkeleton key={n} />)}
+            </div>
           ) : filtered.length > 0 ? (
             <div ref={cardsRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 relative z-0">
               {filtered.map((product, i) => (
