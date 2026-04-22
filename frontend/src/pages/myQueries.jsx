@@ -4,6 +4,7 @@ import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
 import { MessageSquare, Calendar, ArrowRight, Loader2, Inbox, AlertCircle, ChevronRight, CheckCircle2, Send } from "lucide-react";
 import { Link } from "react-router-dom";
+import { QuerySkeleton } from "../components/Skeleton";
 
 export default function MyQueries() {
   const { user, isLoaded, isSignedIn } = useUser();
@@ -222,13 +223,8 @@ export default function MyQueries() {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-             <div className="relative">
-                <div className="w-16 h-16 border-4 border-[#f0f4ee] rounded-full" />
-                <div className="w-16 h-16 border-4 border-[#3d6b45] border-t-transparent rounded-full animate-spin absolute top-0" />
-                <MessageSquare className="w-6 h-6 text-[#3d6b45] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-             </div>
-             <p className="text-sm font-bold text-gray-400 animate-pulse uppercase tracking-widest">Loading your history...</p>
+          <div className="grid grid-cols-1 gap-6">
+            {[1, 2, 3].map((n) => <QuerySkeleton key={n} />)}
           </div>
         ) : queries.length === 0 ? (
           <div className={`bg-white rounded-[32px] border border-[#e8ede6] p-12 text-center shadow-sm flex flex-col items-center transition-all duration-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>

@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Eye, Pencil, Trash2, X, Upload, Search } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
+import { AdminTableSkeleton } from "../components/Skeleton";
 
-const API_BASE = "http://localhost:8000/api/products"; // ✅ fixed port + plural
+const API_BASE = "http://localhost:8000/api/products"; 
 const CLOUD_NAME = "dxwjpln3g";
 const UPLOAD_PRESET = "Green_Nest_Products";
 
@@ -38,7 +39,7 @@ export default function AdminProducts() {
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // ✅ Multiple images state
+  // Multiple images state
   const [imageFiles, setImageFiles] = useState([]);         // new File objects to upload
   const [imagePreviews, setImagePreviews] = useState([]);   // blob URLs for new files
   const [existingImages, setExistingImages] = useState([]); // URLs already in DB
@@ -75,7 +76,7 @@ export default function AdminProducts() {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  // ✅ Allow picking multiple images
+  // Allow picking multiple images
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
@@ -98,13 +99,13 @@ export default function AdminProducts() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // ✅ Remove a newly added (not yet uploaded) image
+  // Remove a newly added (not yet uploaded) image
   const handleRemoveNewImage = (index) => {
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // ✅ Remove an existing (already saved) image
+  // Remove an existing (already saved) image
   const handleRemoveExistingImage = (index) => {
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
@@ -115,7 +116,7 @@ export default function AdminProducts() {
     setSubmitting(true);
 
     try {
-      // ✅ Upload all new images to Cloudinary
+      // Upload all new images to Cloudinary
       let newUrls = [];
       if (imageFiles.length > 0) {
         setImageUploading(true);
@@ -137,7 +138,7 @@ export default function AdminProducts() {
         stock: Number(form.stock),
         description: form.description.trim(),
         careInstructions: form.careInstructions.trim(),
-        images: [...existingImages, ...newUrls], // ✅ merge existing + new
+        images: [...existingImages, ...newUrls], // merge existing + new
       };
 
       const url = editProduct
@@ -183,7 +184,7 @@ export default function AdminProducts() {
       description: product.description || "",
       careInstructions: product.careInstructions || "",
     });
-    setExistingImages(product.images || []); // ✅ load existing images
+    setExistingImages(product.images || []); // load existing images
     setImageFiles([]);
     setImagePreviews([]);
     setShowModal(true);
@@ -244,7 +245,7 @@ export default function AdminProducts() {
         <div className="bg-white rounded-2xl shadow-sm border border-[#e8ede6]">
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex items-center justify-center py-16 text-gray-400 text-sm">Loading products...</div>
+              <AdminTableSkeleton rows={5} cols={7} hasImage={true} />
             ) : (
               <table className="w-full text-sm">
                 <thead>
@@ -261,7 +262,7 @@ export default function AdminProducts() {
                 <tbody>
                   {filteredProducts.map((p, i) => (
                     <tr key={p._id} className={`border-b border-[#f0f4ee] hover:bg-[#fafcfa] transition-colors ${i === products.length - 1 ? "border-0" : ""}`}>
-                      {/* ✅ Show first image as thumbnail in table */}
+                      {/* Show first image as thumbnail in table */}
                       <td className="px-6 py-4">
                         <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-[#f0f4ee]">
                           <img
@@ -320,7 +321,7 @@ export default function AdminProducts() {
 
             <div className="px-6 py-5 flex flex-col gap-4 overflow-y-auto max-h-[65vh]">
 
-              {/* ✅ Multi-image upload section */}
+              {/* Multi-image upload section */}
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
                   Product Images

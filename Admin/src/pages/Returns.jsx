@@ -1,5 +1,6 @@
-import { Eye, Pencil, Loader2, Check, X, RotateCcw, AlertCircle, MessageSquare, Calendar, Clock } from "lucide-react";
+import { Eye, Pencil, Loader2, Check, X, RotateCcw, AlertCircle, MessageSquare, Calendar, Clock, Search } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
+import { AdminTableSkeleton } from "../components/Skeleton";
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
 
@@ -20,6 +21,7 @@ export default function Returns() {
   const [updatingId, setUpdatingId] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingOrder, setViewingOrder] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleView = (order) => {
     setViewingOrder(order);
@@ -79,6 +81,16 @@ export default function Returns() {
       setUpdatingId(null);
     }
   };
+
+  const filteredOrders = orders.filter((o) => {
+    const q = searchTerm.toLowerCase();
+    return (
+      (o._id || "").toLowerCase().includes(q) ||
+      (o.user?.name || "").toLowerCase().includes(q) ||
+      (o.user?.email || "").toLowerCase().includes(q) ||
+      (o.returnReason || "").toLowerCase().includes(q)
+    );
+  });
 
   return (
     <>
@@ -194,8 +206,18 @@ export default function Returns() {
               <p className="text-sm text-gray-400 mt-1">Resolution dashboard for returns and cancellations</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <div className="px-3 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-bold border border-amber-200 flex items-center gap-1.5">
+          <div className="flex gap-4 items-center">
+            <div className="relative group">
+              <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-[#3d6b45] transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Search returns..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-[#fcfdfc] border border-[#e8ede6] rounded-2xl pl-10 pr-4 py-2 text-xs font-medium text-gray-600 placeholder:text-gray-300 outline-none focus:ring-2 focus:ring-[#3d6b45]/10 focus:border-[#3d6b45] focus:bg-white transition-all w-64"
+              />
+            </div>
+            <div className="px-3 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-bold border border-amber-200 flex items-center gap-1.5 shrink-0">
               <AlertCircle className="w-3.5 h-3.5" />
               {orders.filter(o => ["return_requested", "cancel_requested"].includes(o.statusKey)).length} Pending Actions
             </div>
@@ -204,18 +226,17 @@ export default function Returns() {
 
         <div className="bg-white rounded-3xl shadow-md border border-amber-100 overflow-hidden">
           {loading ? (
-            <div className="p-20 flex flex-col items-center gap-4 text-gray-400">
-              <Loader2 className="w-10 h-10 animate-spin text-amber-500" />
-              <p className="text-sm font-semibold tracking-wide uppercase">Fetching resolution requests...</p>
-            </div>
-          ) : orders.length === 0 ? (
+            <AdminTableSkeleton rows={5} cols={7} />
+          ) : filteredOrders.length === 0 ? (
             <div className="p-20 flex flex-col items-center gap-4 text-center">
               <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
                 <Check className="w-10 h-10 text-gray-200" />
               </div>
               <div>
-                <p className="text-gray-900 font-bold text-lg">Inbox Zero!</p>
-                <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">All returns and cancellations have been processed and resolved.</p>
+                <p className="text-gray-900 font-bold text-lg">{searchTerm ? "No matches found" : "Inbox Zero!"}</p>
+                <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">
+                  {searchTerm ? "Try searching with a different Ref ID or customer name." : "All returns and cancellations have been processed and resolved."}
+                </p>
               </div>
             </div>
           ) : (
@@ -233,7 +254,7 @@ export default function Returns() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-amber-50">
-                  {orders.map((o) => (
+                  {filteredOrders.map((o) => (
                     <tr key={o._id} className="hover:bg-amber-50/30 transition-colors group">
                       <td className="px-6 py-5">
                         <div className="flex flex-col gap-1">

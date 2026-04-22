@@ -7,6 +7,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
+import { CartItemSkeleton } from "../components/Skeleton";
 import { useAuth } from "@clerk/clerk-react";
 
 const API_BASE      = "http://localhost:8000/api/cart";

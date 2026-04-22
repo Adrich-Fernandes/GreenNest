@@ -1,5 +1,6 @@
 import { Eye, Pencil, Loader2, Check, X, ShoppingCart, Filter, ArrowRight, MapPin, User, Package, CreditCard, Search, Clock, Calendar } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
+import { AdminTableSkeleton } from "../components/Skeleton";
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
@@ -320,10 +321,7 @@ export default function Orders() {
 
         <div className="bg-white rounded-3xl shadow-md border border-emerald-50 overflow-hidden">
           {loading ? (
-            <div className="p-20 flex flex-col items-center gap-4 text-gray-400">
-              <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
-              <p className="text-sm font-semibold tracking-wide uppercase font-medium">Tracking shipments...</p>
-            </div>
+            <AdminTableSkeleton rows={8} cols={8} />
           ) : filteredOrders.length === 0 ? (
             <div className="p-20 text-center text-gray-300">
               <p className="text-sm italic">No orders found matching this filter.</p>

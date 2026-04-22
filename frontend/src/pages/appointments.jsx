@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
+import { AppointmentSkeleton } from "../components/Skeleton";
 import { useUser, useAuth } from "@clerk/clerk-react";
 
 /* ── Status config ── */
@@ -180,9 +181,8 @@ export default function Appointments() {
 
           {/* Loading */}
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-4">
-              <Loader2 className="w-8 h-8 text-[#3d6b45] animate-spin" />
-              <p className="text-sm text-gray-400 font-medium">Loading your appointments...</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[1, 2, 3].map((n) => <AppointmentSkeleton key={n} />)}
             </div>
           ) : !isSignedIn ? (
             <div className="flex flex-col items-center justify-center py-24 gap-3">

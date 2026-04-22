@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Plus, Eye, Pencil, Trash2, X, Loader2, Star } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, X, Loader2, Star, Search } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
+import { AdminTableSkeleton } from "../components/Skeleton";
 
 const statusStyles = {
   active: "bg-[#f0f4ee] text-[#3d6b45] border-[#c8d9c0]",
@@ -21,6 +22,7 @@ export default function Gardners() {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchGardeners();
@@ -139,6 +141,15 @@ export default function Gardners() {
     }
   };
 
+  const filteredGardeners = gardeners.filter((g) => {
+    const q = searchTerm.toLowerCase();
+    return (
+      (g.name || "").toLowerCase().includes(q) ||
+      (g.location || "").toLowerCase().includes(q) ||
+      (g.specialties || []).some(s => s.toLowerCase().includes(q))
+    );
+  });
+
   const handleClose = () => { 
     setShowModal(false); 
     setForm(emptyForm); 
@@ -218,24 +229,33 @@ export default function Gardners() {
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Gardeners</h1>
             <p className="text-sm text-gray-400 mt-1">Manage verified gardening professionals</p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
-          >
-            <Plus className="w-4 h-4" /> Add Gardener
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="relative group">
+              <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-[#3d6b45] transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Search professionals..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-[#fcfdfc] border border-[#e8ede6] rounded-2xl pl-10 pr-4 py-2 text-xs font-medium text-gray-600 placeholder:text-gray-300 outline-none focus:ring-2 focus:ring-[#3d6b45]/10 focus:border-[#3d6b45] focus:bg-white transition-all w-64"
+              />
+            </div>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 bg-[#3d6b45] hover:bg-[#345c3c] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shrink-0"
+            >
+              <Plus className="w-4 h-4" /> Add Gardener
+            </button>
+          </div>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-[#e8ede6]">
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-24 gap-4">
-                <Loader2 className="w-10 h-10 text-[#3d6b45] animate-spin" />
-                <p className="text-gray-400 font-medium tracking-tight">Loading gardeners...</p>
-              </div>
-            ) : gardeners.length === 0 ? (
+              <AdminTableSkeleton rows={6} cols={6} />
+            ) : filteredGardeners.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 gap-2">
                  <p className="text-gray-400 font-medium">No gardeners found</p>
-                 <p className="text-xs text-gray-300 italic">Get started by onboarding new professionals</p>
+                 <p className="text-xs text-gray-300 italic">{searchTerm ? "Try a different search query." : "Get started by onboarding new professionals"}</p>
               </div>
             ) : (
               <table className="w-full text-sm">
@@ -250,7 +270,7 @@ export default function Gardners() {
                   </tr>
                 </thead>
                 <tbody>
-                  {gardeners.map((g, i) => (
+                  {filteredGardeners.map((g, i) => (
                     <tr key={g._id || g.id} className={`border-b border-[#f0f4ee] hover:bg-[#fafcfa] transition-colors ${i === gardeners.length - 1 ? "border-0" : ""}`}>
                       <td className="px-6 py-4 font-semibold text-gray-800">{g.name}</td>
                       <td className="px-6 py-4 text-gray-500">{g.location || "N/A"}</td>

@@ -8,6 +8,7 @@ import {
 import { Link } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
+import { OrderItemSkeleton } from "../components/Skeleton";
 import { useAuth } from "@clerk/clerk-react";
 
 // ── useInView hook (same as hero page) ────────────────────────────────────────
@@ -634,9 +635,7 @@ export default function Orders() {
           {/* Order list */}
           {loading ? (
             <div className="flex flex-col gap-3">
-              {[1, 2, 3].map((n) => (
-                <div key={n} className="bg-white rounded-2xl border border-[#e8ede6] p-4 flex gap-4 animate-pulse h-32" />
-              ))}
+              {[1, 2, 3].map((n) => <OrderItemSkeleton key={n} />)}
             </div>
           ) : filtered.length === 0 ? (
             <div className={`flex flex-col items-center justify-center py-24 gap-5 transition-all duration-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>

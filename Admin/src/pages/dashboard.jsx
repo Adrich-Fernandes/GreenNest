@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { TrendingUp, ShoppingCart, Package, Users, ArrowUp, ArrowDown, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
+import { AdminTableSkeleton, AdminStatSkeleton } from "../components/Skeleton";
 
 const statusStyles = {
   Delivered: "bg-[#f0f4ee] text-[#3d6b45] border-[#c8d9c0]",
@@ -71,13 +72,11 @@ export default function Dashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {loading ? (
-             Array(4).fill(0).map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl p-5 shadow-sm border border-[#e8ede6] animate-pulse h-32" />
-             ))
-          ) : (
-            dashboardStats.map((stat) => {
+        {loading ? (
+           <AdminStatSkeleton />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {dashboardStats.map((stat) => {
               const Icon = stat.icon;
               return (
                 <div key={stat.label} className="bg-white rounded-2xl p-5 shadow-sm border border-[#e8ede6] flex flex-col gap-3 group hover:border-[#3d6b45]/30 transition-all">
@@ -95,9 +94,9 @@ export default function Dashboard() {
                   </div>
                 </div>
               );
-            })
-          )}
-        </div>
+            })}
+          </div>
+        )}
 
         {/* Recent Orders */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#e8ede6] overflow-hidden">
@@ -119,11 +118,11 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {loading ? (
-                   Array(5).fill(0).map((_, i) => (
-                    <tr key={i} className="border-b border-[#f0f4ee] animate-pulse">
-                      <td colSpan="4" className="px-6 py-5 h-16" />
-                    </tr>
-                   ))
+                   <tr>
+                     <td colSpan="4">
+                       <AdminTableSkeleton rows={5} cols={4} />
+                     </td>
+                   </tr>
                 ) : data?.recentOrders.length === 0 ? (
                   <tr>
                     <td colSpan="4" className="px-6 py-20 text-center text-gray-400 italic">No orders found yet.</td>

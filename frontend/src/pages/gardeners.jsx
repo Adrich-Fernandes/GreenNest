@@ -3,6 +3,7 @@ import { Search, Star, MapPin, Clock, ChevronDown, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
+import { GardenerSkeleton } from "../components/Skeleton";
 
 // Using predefined specialties for filter options
 const serviceOptions = ["All Specialties", "Lawn Maintenance", "Home Gardening", "Landscaping", "Plant Care & Pruning", "Irrigation Setup", "Pest Control", "Seasonal Cleanup"];
@@ -119,21 +120,7 @@ export default function Gardeners() {
 
           {loading ? (
              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-               {[1, 2, 3].map((n) => (
-                 <div key={n} className="bg-white rounded-2xl p-6 h-64 animate-pulse border border-[#e8ede6]">
-                   <div className="flex gap-4">
-                     <div className="w-14 h-14 bg-gray-100 rounded-full" />
-                     <div className="flex-1 space-y-3 py-1">
-                       <div className="h-4 bg-gray-100 rounded w-3/4" />
-                       <div className="h-3 bg-gray-100 rounded w-1/2" />
-                     </div>
-                   </div>
-                   <div className="mt-6 space-y-3">
-                     <div className="h-3 bg-gray-100 rounded" />
-                     <div className="h-3 bg-gray-100 rounded w-5/6" />
-                   </div>
-                 </div>
-               ))}
+               {[1, 2, 3, 4, 5, 6].map((n) => <GardenerSkeleton key={n} />)}
              </div>
           ) : filtered.length > 0 ? (
             <div ref={cardsRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 relative z-0">

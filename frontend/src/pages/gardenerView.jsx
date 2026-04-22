@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Star, MapPin, Clock, ArrowLeft, Calendar, User, Check, ShieldCheck, X, IndianRupee, Tag } from 'lucide-react';
 import UserNavBar from '../components/userNavBar';
 import Footer from '../components/footer';
+import { GardenerViewSkeleton } from '../components/Skeleton';
 import { useUser, useAuth, SignInButton } from '@clerk/clerk-react';
 
 const TIME_SLOTS = [
@@ -100,10 +101,17 @@ export default function GardenerView() {
     }
   };
 
+
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f7f9f6]">
-      <div className="w-10 h-10 border-4 border-[#3d6b45] border-t-transparent rounded-full animate-spin" />
-    </div>
+    <>
+      <UserNavBar />
+      <div className="min-h-screen bg-[#f7f9f6] pt-8 pb-16 px-6 md:px-16">
+        <div className="max-w-5xl mx-auto">
+          <GardenerViewSkeleton />
+        </div>
+      </div>
+      <Footer />
+    </>
   );
 
   if (!gardener) return (

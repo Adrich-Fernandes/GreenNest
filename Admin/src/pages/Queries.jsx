@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
 import AdminLayout from "../components/AdminLayout";
-import { MessageSquare, User, Mail, Calendar, Search, Trash2, ExternalLink, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
+import { AdminTableSkeleton, AdminStatSkeleton } from "../components/Skeleton";
+import { MessageSquare, User, Mail, Calendar, Search, Trash2, ExternalLink, AlertCircle, Loader2, CheckCircle2, RotateCcw, X } from "lucide-react";
 
 export default function Queries() {
   const [queries, setQueries] = useState([]);
@@ -136,50 +136,54 @@ export default function Queries() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-[#e8ede6] shadow-sm flex items-center gap-5 group hover:border-[#3d6b45]/30 transition-all">
-            <div className="w-12 h-12 bg-[#f0f4ee] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <MessageSquare className="w-6 h-6 text-[#3d6b45]" />
+        {loading ? (
+          <AdminStatSkeleton />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white p-6 rounded-2xl border border-[#e8ede6] shadow-sm flex items-center gap-5 group hover:border-[#3d6b45]/30 transition-all">
+              <div className="w-12 h-12 bg-[#f0f4ee] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <MessageSquare className="w-6 h-6 text-[#3d6b45]" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total</p>
+                <p className="text-2xl font-black text-gray-800">{queries.length}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total</p>
-              <p className="text-2xl font-black text-gray-800">{queries.length}</p>
+            <div className="bg-white p-6 rounded-2xl border border-[#e8ede6] shadow-sm flex items-center gap-5 group hover:border-blue-200 transition-all">
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">In Progress</p>
+                <p className="text-2xl font-black text-gray-800">
+                  {queries.filter(q => q.status === "In Progress").length}
+                </p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-2xl border border-[#e8ede6] shadow-sm flex items-center gap-5 group hover:border-amber-200 transition-all">
+              <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <AlertCircle className="w-6 h-6 text-amber-500" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Requests</p>
+                <p className="text-2xl font-black text-gray-800">
+                  {queries.filter(q => q.status === "Update Requested").length}
+                </p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-2xl border border-[#e8ede6] shadow-sm flex items-center gap-5 group hover:border-emerald-200 transition-all">
+              <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <CheckCircle2 className="w-6 h-6 text-[#3d6b45]" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Resolved</p>
+                <p className="text-2xl font-black text-gray-800">
+                  {queries.filter(q => q.status === "Resolved").length}
+                </p>
+              </div>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-2xl border border-[#e8ede6] shadow-sm flex items-center gap-5 group hover:border-blue-200 transition-all">
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">In Progress</p>
-              <p className="text-2xl font-black text-gray-800">
-                {queries.filter(q => q.status === "In Progress").length}
-              </p>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-2xl border border-[#e8ede6] shadow-sm flex items-center gap-5 group hover:border-amber-200 transition-all">
-            <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <AlertCircle className="w-6 h-6 text-amber-500" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Requests</p>
-              <p className="text-2xl font-black text-gray-800">
-                {queries.filter(q => q.status === "Update Requested").length}
-              </p>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-2xl border border-[#e8ede6] shadow-sm flex items-center gap-5 group hover:border-emerald-200 transition-all">
-            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <CheckCircle2 className="w-6 h-6 text-[#3d6b45]" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Resolved</p>
-              <p className="text-2xl font-black text-gray-800">
-                {queries.filter(q => q.status === "Resolved").length}
-              </p>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Queries Table */}
         <div className="bg-white rounded-[32px] border border-[#e8ede6] shadow-xl shadow-gray-200/50 overflow-hidden">
@@ -197,11 +201,8 @@ export default function Queries() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-20 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <Loader2 className="w-10 h-10 text-[#3d6b45] animate-spin opacity-40" />
-                        <p className="text-sm font-medium text-gray-400">Loading user inquiries...</p>
-                      </div>
+                    <td colSpan="5">
+                      <AdminTableSkeleton rows={8} cols={5} />
                     </td>
                   </tr>
                 ) : filteredQueries.length === 0 ? (

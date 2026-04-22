@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
+import { ProductSkeleton } from "../components/Skeleton";
 
 const API_BASE = "http://localhost:8000/api/products";
 
@@ -220,22 +221,8 @@ function FreshArrivals() {
         {/* Loading skeleton */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-            {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
-                <div className="w-full h-52 bg-[#f0f4ee]" />
-                <div className="px-4 pt-4 pb-5 flex flex-col gap-3">
-                  <div className="h-3 bg-[#f0f4ee] rounded-full w-3/4" />
-                  <div className="h-2.5 bg-[#f0f4ee] rounded-full w-1/2" />
-                  <div className="h-2.5 bg-[#f0f4ee] rounded-full w-1/4" />
-                  <div className="flex justify-between mt-1">
-                    <div className="h-5 bg-[#f0f4ee] rounded-full w-16" />
-                    <div className="h-8 bg-[#f0f4ee] rounded-xl w-20" />
-                  </div>
-                </div>
-              </div>
-            ))}
+            {[1, 2, 3, 4].map((n) => <ProductSkeleton key={n} />)}
           </div>
-
         ) : products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <p className="text-gray-400 text-sm">No products available right now.</p>
