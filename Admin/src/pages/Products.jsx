@@ -43,6 +43,8 @@ export default function AdminProducts() {
   const [imageFiles, setImageFiles] = useState([]);         // new File objects to upload
   const [imagePreviews, setImagePreviews] = useState([]);   // blob URLs for new files
   const [existingImages, setExistingImages] = useState([]); // URLs already in DB
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingProduct, setViewingProduct] = useState(null);
   const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -190,6 +192,11 @@ export default function AdminProducts() {
     setShowModal(true);
   };
 
+  const handleViewDetail = (product) => {
+    setViewingProduct(product);
+    setShowViewModal(true);
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
     try {
@@ -288,7 +295,7 @@ export default function AdminProducts() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Eye className="w-4 h-4" /></button>
+                          <button onClick={() => handleViewDetail(p)} className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Eye className="w-4 h-4" /></button>
                           <button onClick={() => handleEdit(p)} className="p-1.5 hover:bg-[#f0f4ee] rounded-lg text-gray-400 hover:text-[#3d6b45] transition-colors"><Pencil className="w-4 h-4" /></button>
                           <button onClick={() => handleDelete(p._id)} className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                         </div>
@@ -500,6 +507,138 @@ export default function AdminProducts() {
           `}</style>
         </div>
       )}
+
+      {/* View Product Details Modal */}
+      {showViewModal && viewingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-4xl flex flex-col md:flex-row relative max-h-[90vh] overflow-hidden animate-fade-in-up">
+            
+            {/* Close Button Mobile */}
+            <button 
+              onClick={() => setShowViewModal(false)}
+              className="absolute top-4 right-4 md:hidden z-10 p-2 bg-white/80 rounded-full text-gray-500 shadow-md"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Left: Image Gallery */}
+            <div className="w-full md:w-1/2 bg-[#f9faf9] p-6 flex flex-col gap-4">
+              <div className="aspect-square rounded-[24px] overflow-hidden bg-white shadow-inner border border-[#f0f4ee]">
+                 {/* Main Image */}
+                 <img 
+                   src={viewingProduct.images?.[0] || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80"} 
+                   alt={viewingProduct.name}
+                   className="w-full h-full object-cover"
+                 />
+              </div>
+              
+              {viewingProduct.images?.length > 1 && (
+                <div className="grid grid-cols-4 gap-3">
+                   {viewingProduct.images.slice(1).map((img, idx) => (
+                     <div key={idx} className="aspect-square rounded-xl overflow-hidden border border-[#e8ede6] bg-white group">
+                       <img src={img} alt={`${viewingProduct.name} ${idx + 2}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                     </div>
+                   ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right: Content */}
+            <div className="w-full md:w-1/2 flex flex-col">
+               {/* Modal Header */}
+               <div className="flex items-center justify-between px-8 py-6 border-b border-[#f0f4ee]">
+                  <div>
+                    <span className="text-[10px] uppercase font-black text-[#3d6b45]/60 bg-[#f0f4ee] px-2.5 py-1 rounded-full tracking-widest">
+                      {viewingProduct.category}
+                    </span>
+                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight mt-2">{viewingProduct.name}</h2>
+                  </div>
+                  <button 
+                    onClick={() => setShowViewModal(false)}
+                    className="hidden md:flex p-3 bg-[#f7f9f6] border border-[#e8ede6] hover:bg-white rounded-2xl text-gray-400 hover:text-[#3d6b45] transition-all shadow-sm group"
+                  >
+                    <X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+                  </button>
+               </div>
+
+               <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-8">
+                  
+                  {/* Prices & Stock Grid */}
+                  <div className="grid grid-cols-2 gap-4">
+                     <div className="bg-[#fcfdfc] border border-[#f0f4ee] p-5 rounded-[24px]">
+                        <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1.5">Current Price</p>
+                        <p className="text-2xl font-black text-gray-900">₹{viewingProduct.price.toLocaleString("en-IN")}</p>
+                     </div>
+                     <div className="bg-[#fcfdfc] border border-[#f0f4ee] p-5 rounded-[24px]">
+                        <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1.5">Inventory</p>
+                        <div className="flex items-baseline gap-2">
+                           <p className="text-2xl font-black text-gray-900">{viewingProduct.stock}</p>
+                           <span className="text-xs font-bold text-gray-400 lowercase">units left</span>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Status Card */}
+                  <div className={`p-4 rounded-2xl border flex items-center justify-between ${statusStyles[viewingProduct.status]}`}>
+                     <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full animate-pulse ${viewingProduct.status === 'Active' ? 'bg-[#3d6b45]' : 'bg-red-500'}`} />
+                        <span className="text-sm font-bold uppercase tracking-wider">Sale Status</span>
+                     </div>
+                     <span className="text-sm font-black">{viewingProduct.status}</span>
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-3">
+                     <h3 className="text-xs font-bold text-gray-900 uppercase tracking-[0.2em]">Product Details</h3>
+                     <p className="text-sm text-gray-600 leading-relaxed">
+                        {viewingProduct.description || "No specific details provided for this botanical selection."}
+                     </p>
+                  </div>
+
+                  {/* Care Instructions */}
+                  {viewingProduct.careInstructions && (
+                    <div className="bg-[#f0f4ee]/30 border border-[#c8d9c0]/30 p-6 rounded-[24px] space-y-3">
+                       <div className="flex items-center gap-2 text-[#3d6b45]">
+                          <Plus className="w-4 h-4 rotate-45" />
+                          <h3 className="text-xs font-black uppercase tracking-widest">Nurture Notes</h3>
+                       </div>
+                       <p className="text-sm text-gray-700 italic leading-relaxed">
+                          "{viewingProduct.careInstructions}"
+                       </p>
+                    </div>
+                  )}
+
+               </div>
+
+               {/* Action Footer */}
+               <div className="px-8 py-6 border-t border-[#f0f4ee] bg-[#fcfdfc] flex gap-3">
+                  <button 
+                    onClick={() => { setShowViewModal(false); handleEdit(viewingProduct); }}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-[#3d6b45] text-white text-sm font-bold rounded-2xl hover:bg-[#345c3c] transition-all active:scale-95 shadow-lg shadow-emerald-900/10"
+                  >
+                    <Pencil className="w-4 h-4" /> Edit Selection
+                  </button>
+                  <button 
+                    onClick={() => setShowViewModal(false)}
+                    className="px-6 py-4 bg-white border border-[#e8ede6] text-gray-400 text-sm font-bold rounded-2xl hover:text-gray-900 hover:border-gray-900 transition-all active:scale-95"
+                  >
+                    Close
+                  </button>
+               </div>
+            </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+              @keyframes fade-in-up {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+              .animate-fade-in-up {
+                animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              }
+            `}} />
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
-}
+}
