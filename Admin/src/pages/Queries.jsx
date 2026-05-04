@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import AdminLayout from "../components/AdminLayout";
 import { AdminTableSkeleton, AdminStatSkeleton } from "../components/Skeleton";
 import { MessageSquare, User, Mail, Calendar, Search, Trash2, ExternalLink, AlertCircle, Loader2, CheckCircle2, RotateCcw, X } from "lucide-react";
@@ -383,43 +384,3 @@ export default function Queries() {
   );
 }
 
-// Sub-component Helper
-function RotateCcw({ className }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-      <path d="M3 3v5h5" />
-    </svg>
-  );
-}
-
-function X({ className }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  );
-}
