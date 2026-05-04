@@ -662,6 +662,38 @@ The admin panel runs on **http://localhost:5174** by default.
 
 ---
 
+## 🔑 Environment Variables
+
+To run this project, you will need to add the following environment variables to your `.env` files.
+
+### Backend (`backend/.env`)
+```env
+PORT=8000
+DB_URI=your_mongodb_connection_string
+CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+JWT_SECRET=your_jwt_secret
+EMAIL_USER=your_email_for_nodemailer
+EMAIL_PASS=your_email_password_or_app_password
+```
+
+### Frontend (`frontend/.env`)
+```env
+VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+VITE_API_URL=http://localhost:8000
+```
+
+### Admin Panel (`Admin/.env`)
+```env
+VITE_CLERK_PUBLISHABLE_KEY=your_admin_clerk_publishable_key
+VITE_API_URL=http://localhost:8000
+```
+
+---
+
+
+---
+
 ## 👨‍💻 Author
 
 **Adrich Fernandes**

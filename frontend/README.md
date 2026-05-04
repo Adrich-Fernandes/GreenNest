@@ -1,16 +1,40 @@
-# React + Vite
+# 🌿 GreenNest — Customer Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the customer-facing application for the GreenNest platform, where users can browse plants, book gardening appointments, and manage their orders.
 
-Currently, two official plugins are available:
+## 🚀 Key Features
+- **Product Catalog**: Browse and filter plants by categories (Indoor, Outdoor, Seeds, etc.).
+- **Gardener Booking**: Find professional gardeners and book appointments with a real-time calendar.
+- **Order Tracking**: Visual tracking timeline for all your plant orders.
+- **Support System**: Raise and track support queries directly from your dashboard.
+- **Authentication**: Secure user management powered by Clerk.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🛠️ Setup and Installation
 
-## React Compiler
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+2. **Environment Variables**:
+   Create a `.env` file in this directory and add:
+   ```env
+   VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+   VITE_API_URL=http://localhost:8000
+   ```
 
-## Expanding the ESLint configuration
+3. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+4. **Build for Production**:
+   ```bash
+   npm run build
+   ```
+
+## 📂 Architecture
+- Built with **React 19** and **Vite**.
+- Styled using **Tailwind CSS 4**.
+- Uses **React Router 7** for navigation.
+- Icons provided by **Lucide React**.
