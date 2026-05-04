@@ -52,7 +52,7 @@ export default function Appointments() {
   const fetchAppointments = async () => {
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/gardener/my-appointments/${user.id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gardener/my-appointments/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const result = await res.json();
@@ -68,7 +68,7 @@ export default function Appointments() {
     setCancelling(apt._id);
     try {
       const token = await getToken();
-      const res = await fetch("http://localhost:8000/api/gardener/cancel-appointment", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gardener/cancel-appointment`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -98,7 +98,7 @@ export default function Appointments() {
     setRescheduleError("");
     try {
       const token = await getToken();
-      const res = await fetch("http://localhost:8000/api/gardener/reschedule-appointment", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gardener/reschedule-appointment`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

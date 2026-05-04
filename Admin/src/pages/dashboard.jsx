@@ -27,7 +27,7 @@ export default function Dashboard() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8000/api/admin/stats");
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/stats`);
       const result = await res.json();
       if (result.success) {
         setData(result);

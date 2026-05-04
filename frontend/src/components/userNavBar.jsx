@@ -12,7 +12,7 @@ const navLinks = [
   { label: "My Queries", to: "/my-queries" },
 ];
 
-const API_BASE = "http://localhost:8000/api/products";
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/products`;
 
 export default function UserNavBar() {
   const [mobileOpen, setMobileOpen]       = useState(false);
@@ -61,7 +61,7 @@ export default function UserNavBar() {
     }
     try {
       const token = await getToken();
-      const res = await fetch("http://localhost:8000/api/cart", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cart`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();

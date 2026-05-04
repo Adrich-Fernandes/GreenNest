@@ -39,7 +39,7 @@ export default function Gardeners() {
 
   const fetchGardeners = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/gardener");
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gardener`);
       const result = await res.json();
       if (result.success) {
         setGardeners(result.data);

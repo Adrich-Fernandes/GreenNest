@@ -30,7 +30,7 @@ export default function Gardners() {
 
   const fetchGardeners = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/gardener?all=true");
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gardener?all=true`);
       const result = await res.json();
       if (result.success) {
         setGardeners(result.data);
@@ -83,7 +83,7 @@ export default function Gardners() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this gardener profile?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/gardener/${id}`, { method: "DELETE" });
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gardener/${id}`, { method: "DELETE" });
       const result = await res.json();
       if (result.success) {
         setGardeners((prev) => prev.filter((g) => g._id !== id));
@@ -103,8 +103,8 @@ export default function Gardners() {
     setSubmitting(true);
     try {
       const url = editingId 
-        ? `http://localhost:8000/api/gardener/admin-update/${editingId}`
-        : `http://localhost:8000/api/gardener/admin-add`; // Note: admin-add might not exist, but let's focus on update
+        ? `${import.meta.env.VITE_API_BASE_URL}/api/gardener/admin-update/${editingId}`
+        : `${import.meta.env.VITE_API_BASE_URL}/api/gardener/admin-add`; // Note: admin-add might not exist, but let's focus on update
       
       const method = editingId ? "PUT" : "POST";
       

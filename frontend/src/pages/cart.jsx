@@ -10,9 +10,9 @@ import Footer from "../components/footer";
 import { CartItemSkeleton } from "../components/Skeleton";
 import { useAuth } from "@clerk/clerk-react";
 
-const API_BASE      = "http://localhost:8000/api/cart";
-const USER_API_BASE = "http://localhost:8000/api/user";
-const ORDER_API_BASE = "http://localhost:8000/api/orders";
+const API_BASE      = `${import.meta.env.VITE_API_BASE_URL}/api/cart`;
+const USER_API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/user`;
+const ORDER_API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/orders`;
 
 const INDIAN_STATES = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh",

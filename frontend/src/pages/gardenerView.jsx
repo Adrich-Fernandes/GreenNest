@@ -34,7 +34,7 @@ export default function GardenerView() {
 
   const fetchGardener = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/gardener/profile/${id}`);
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gardener/profile/${id}`);
       const result = await res.json();
       if (result.success) setGardener(result.data);
     } catch (err) {
@@ -67,7 +67,7 @@ export default function GardenerView() {
     setSubmitting(true);
     try {
       const token = await getToken();
-      const res = await fetch("http://localhost:8000/api/gardener/book-appointment", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gardener/book-appointment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -14,7 +14,7 @@ export default function AdminGuard({ children }) {
     if (isSignedIn) {
       try {
         const token = await getToken();
-        const res = await fetch("http://localhost:8000/api/user/me", {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -81,7 +81,7 @@ export default function AdminGuard({ children }) {
           You have been signed out because your account does not have administrative permissions.
         </p>
         <button 
-          onClick={() => window.location.href = "http://localhost:5173"} // Link back to main store
+          onClick={() => window.location.href = import.meta.env.VITE_STORE_URL || "/"} // Link back to main store
           className="px-6 py-2.5 bg-slate-900 text-white font-bold rounded-2xl hover:bg-black transition-all shadow-xl shadow-slate-200"
         >
           Return to Storefront

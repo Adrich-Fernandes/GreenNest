@@ -105,7 +105,11 @@ const getGardenerById = async (req, res) => {
 // Book appointment — called by a customer from the frontend
 const bookAppointment = async (req, res) => {
   try {
-    const { gardenerId, userId, customerName, location, serviceRequired, price, date, time, duration, note } = req.body;
+    const { gardenerId, location, serviceRequired, price, date, time, duration, note } = req.body;
+    
+    // Use authenticated user info if not provided in body (fallback for robustness)
+    const userId = req.body.userId || req.user.clerkId;
+    const customerName = req.body.customerName || req.user.name;
 
     const gardener = await Gardener.findById(gardenerId);
     if (!gardener) {

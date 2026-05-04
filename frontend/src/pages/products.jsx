@@ -7,7 +7,7 @@ import { ProductSkeleton } from "../components/Skeleton";
 
 import { useAuth } from "@clerk/clerk-react";
 
-const API_BASE = "http://localhost:8000/api/products"; 
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/products`; 
 const categories = ["All Types", "Indoor", "Outdoor", "Flowering", "Seeds", "Pots & Planters", "Tools"];
 const sortOptions = ["Newest", "Price: Low to High", "Price: High to Low", "Top Rated"];
 
@@ -52,7 +52,7 @@ export default function Products() {
     setAddingId(productId);
     try {
       const token = await getToken();
-      const res = await fetch("http://localhost:8000/api/cart/add", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cart/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

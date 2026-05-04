@@ -25,7 +25,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/gardener", gardenerRoutes);
 app.use("/api/queries", queryRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/admin", adminRoutes);
+
 // Health check
 app.get("/", (req, res) => {
   res.json({ success: true, message: "GreenNest API is running 🌿" });
@@ -42,17 +42,19 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: "Internal server error", error: err.message });
 });
 
-// Connect to MongoDB and start server
-const PORT = process.env.PORT || 8000;
+// Connect to MongoDB
 const MONGO_URI = process.env.MONGO_URI;
 
 mongoose
   .connect(MONGO_URI)
-  .then(() => {
-    console.log("MongoDB connected");
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.error("MongoDB connection failed:", err.message);
-    process.exit(1);
-  });
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection failed:", err.message));
+
+// Export the app for Vercel
+module.exports = app;
+
+// Start server locally
+if (require.main === module) {
+  const PORT = process.env.PORT || 8000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}

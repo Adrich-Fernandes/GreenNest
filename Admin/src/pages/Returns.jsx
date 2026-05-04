@@ -4,7 +4,7 @@ import { AdminTableSkeleton } from "../components/Skeleton";
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
 
-const API_BASE = "http://localhost:8000/api/orders/admin";
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/orders/admin`;
 
 const statusStyles = {
   cancelled: "bg-red-50 text-red-700 border-red-200",

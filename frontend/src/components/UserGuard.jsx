@@ -14,7 +14,7 @@ export default function UserGuard({ children }) {
       if (isSignedIn) {
         try {
           const token = await getToken();
-          const res = await fetch("http://localhost:8000/api/user/me", {
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/me`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           const data = await res.json();

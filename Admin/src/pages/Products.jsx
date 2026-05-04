@@ -3,7 +3,7 @@ import { Plus, Eye, Pencil, Trash2, X, Upload, Search } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
 import { AdminTableSkeleton } from "../components/Skeleton";
 
-const API_BASE = "http://localhost:8000/api/products"; 
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/products`; 
 const CLOUD_NAME = "dxwjpln3g";
 const UPLOAD_PRESET = "Green_Nest_Products";
 

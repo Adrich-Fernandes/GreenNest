@@ -497,7 +497,7 @@ export default function Orders() {
     const fetchOrders = async () => {
       try {
         const token = await getToken();
-        const res = await fetch("http://localhost:8000/api/orders/my-orders", {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/orders/my-orders`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -530,7 +530,7 @@ export default function Orders() {
     if (!window.confirm("Are you sure you want to cancel this order?")) return;
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/orders/${orderId}/cancel`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/orders/${orderId}/cancel`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -548,7 +548,7 @@ export default function Orders() {
   const handleReturnSubmit = async (reason, details) => {
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/orders/${returnModal._id}/return`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/orders/${returnModal._id}/return`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

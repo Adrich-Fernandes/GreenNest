@@ -74,7 +74,7 @@ export default function RoleGate({ children }) {
           Your account does not have access to this portal.
         </p>
         <button
-          onClick={() => (window.location.href = "http://localhost:5173")}
+          onClick={() => (window.location.href = import.meta.env.VITE_STORE_URL || "/")}
           className="px-6 py-2.5 bg-slate-900 text-white font-bold rounded-2xl hover:bg-black transition-all"
         >
           Return to Storefront

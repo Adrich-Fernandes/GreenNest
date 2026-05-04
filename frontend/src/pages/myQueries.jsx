@@ -47,7 +47,7 @@ export default function MyQueries() {
   const fetchUserQueries = async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
-      const res = await fetch(`http://localhost:8000/api/queries/user/${user.id}`);
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/queries/user/${user.id}`);
       const data = await res.json();
       if (data.success) {
         setQueries(data.queries);
@@ -63,7 +63,7 @@ export default function MyQueries() {
     e.preventDefault();
     setSubmitStatus("loading");
     try {
-      const res = await fetch("http://localhost:8000/api/queries/submit", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/queries/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -87,7 +87,7 @@ export default function MyQueries() {
 
   const handleUpdateRequest = async (queryId) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/queries/${queryId}/update-request`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/queries/${queryId}/update-request`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" }
       });
@@ -107,7 +107,7 @@ export default function MyQueries() {
     }
 
     try {
-      const res = await fetch(`http://localhost:8000/api/queries/${queryId}/reopen`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/queries/${queryId}/reopen`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" }
       });

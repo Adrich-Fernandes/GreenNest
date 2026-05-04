@@ -5,7 +5,7 @@ import UserNavBar from "../components/userNavBar";
 import Footer from "../components/footer";
 import { ProductSkeleton } from "../components/Skeleton";
 
-const API_BASE = "http://localhost:8000/api/products";
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/products`;
 
 function useInView(threshold = 0.15) {
   const ref = useRef(null);

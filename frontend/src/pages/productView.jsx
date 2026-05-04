@@ -6,7 +6,7 @@ import Footer from "../components/footer";
 import { ProductViewSkeleton } from "../components/Skeleton";
 import { useAuth } from "@clerk/clerk-react";
 
-const API_BASE = "http://localhost:8000/api/products"; // ✅ fixed port + plural
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/products`; // ✅ fixed port + plural
 
 export default function ProductView() {
   const { getToken, isSignedIn } = useAuth();
@@ -26,7 +26,7 @@ export default function ProductView() {
     setAdding(true);
     try {
       const token = await getToken();
-      const res = await fetch("http://localhost:8000/api/cart/add", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cart/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 
-const API_BASE = "http://localhost:8000/api/orders/admin";
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/orders/admin`;
 
 const statusStyles = {
   delivered: "bg-emerald-50 text-emerald-700 border-emerald-200",

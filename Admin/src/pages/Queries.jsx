@@ -23,7 +23,7 @@ export default function Queries() {
   const fetchQueries = async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
-      const res = await fetch("http://localhost:8000/api/queries/all");
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/queries/all`);
       const data = await res.json();
       if (data.success) {
         setQueries(data.queries);
@@ -39,7 +39,7 @@ export default function Queries() {
     if (!replyText.trim()) return;
     try {
       setSendingReply(true);
-      const res = await fetch(`http://localhost:8000/api/queries/${selectedQuery._id}/reply`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/queries/${selectedQuery._id}/reply`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminReply: replyText })
@@ -59,7 +59,7 @@ export default function Queries() {
 
   const handleStatusChange = async (queryId, newStatus) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/queries/${queryId}/status`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/queries/${queryId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })
