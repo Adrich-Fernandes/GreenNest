@@ -196,7 +196,7 @@ export default function Returns() {
 
     <AdminLayout>
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center shadow-sm">
               <RotateCcw className="w-6 h-6 text-amber-600" />
@@ -206,18 +206,18 @@ export default function Returns() {
               <p className="text-sm text-gray-400 mt-1">Resolution dashboard for returns and cancellations</p>
             </div>
           </div>
-          <div className="flex gap-4 items-center">
-            <div className="relative group">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+            <div className="relative group flex-1 md:flex-none">
               <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-[#3d6b45] transition-colors" />
               <input 
                 type="text" 
                 placeholder="Search returns..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-[#fcfdfc] border border-[#e8ede6] rounded-2xl pl-10 pr-4 py-2 text-xs font-medium text-gray-600 placeholder:text-gray-300 outline-none focus:ring-2 focus:ring-[#3d6b45]/10 focus:border-[#3d6b45] focus:bg-white transition-all w-64"
+                className="bg-[#fcfdfc] border border-[#e8ede6] rounded-2xl pl-10 pr-4 py-2.5 text-xs font-medium text-gray-600 placeholder:text-gray-300 outline-none focus:ring-2 focus:ring-[#3d6b45]/10 focus:border-[#3d6b45] focus:bg-white transition-all w-full md:w-64"
               />
             </div>
-            <div className="px-3 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-bold border border-amber-200 flex items-center gap-1.5 shrink-0">
+            <div className="px-3 py-2.5 bg-amber-50 text-amber-700 rounded-xl text-[10px] font-bold border border-amber-200 flex items-center justify-center gap-1.5 shrink-0">
               <AlertCircle className="w-3.5 h-3.5" />
               {orders.filter(o => ["return_requested", "cancel_requested"].includes(o.statusKey)).length} Pending Actions
             </div>

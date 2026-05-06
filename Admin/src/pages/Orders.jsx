@@ -278,7 +278,7 @@ export default function Orders() {
 
     <AdminLayout>
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center shadow-sm">
               <ShoppingCart className="w-6 h-6 text-emerald-600" />
@@ -288,25 +288,23 @@ export default function Orders() {
               <p className="text-sm text-gray-400 mt-1">Full management of customer fulfillment cycles</p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="relative group">
+             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+            <div className="relative group flex-1">
               <Search className="w-4 h-4 text-emerald-600/40 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-emerald-600 transition-colors" />
               <input 
                 type="text" 
                 placeholder="Search ID, Name..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-emerald-50/30 border border-emerald-100 rounded-2xl pl-10 pr-4 py-2 text-xs font-medium text-emerald-900 placeholder:text-emerald-600/30 outline-none focus:ring-2 focus:ring-emerald-100 focus:bg-white transition-all w-64"
+                className="bg-emerald-50/30 border border-emerald-100 rounded-2xl pl-10 pr-4 py-2.5 text-xs font-medium text-emerald-900 placeholder:text-emerald-600/30 outline-none focus:ring-2 focus:ring-emerald-100 focus:bg-white transition-all w-full lg:w-64"
               />
             </div>
-
-            <div className="flex bg-emerald-50/50 p-1 rounded-2xl border border-emerald-100">
+            <div className="flex bg-emerald-50/50 p-1 rounded-2xl border border-emerald-100 overflow-x-auto no-scrollbar">
               {["all", "fulfillment", "exceptions"].map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all capitalize ${
+                  className={`flex-1 sm:flex-none px-4 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold transition-all capitalize whitespace-nowrap ${
                     filter === f
                       ? "bg-emerald-600 text-white shadow-md shadow-emerald-200"
                       : "text-emerald-800 hover:bg-emerald-100/50"

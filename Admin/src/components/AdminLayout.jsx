@@ -48,7 +48,7 @@ export default function AdminLayout({ children }) {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto px-6 py-8">
+        <main className="flex-1 overflow-y-auto px-4 md:px-6 py-6 md:py-8">
           {children}
         </main>
       </div>
