@@ -29,7 +29,7 @@ export default function HeroSection() {
       <UserNavBar />
 
       {/* HERO */}
-      <section ref={heroRef} className="min-h-screen bg-white flex items-center px-6 md:px-16 py-16">
+      <section ref={heroRef} className="min-h-0 md:min-h-screen bg-white flex items-center px-6 md:px-16 pt-24 pb-12 md:py-16">
         <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row gap-10 items-center">
 
           {/* LEFT */}
@@ -47,8 +47,8 @@ export default function HeroSection() {
               className={`transition-all duration-700 ${heroInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
               style={{ transitionDelay: "200ms" }}
             >
-              <h1 className="text-5xl md:text-6xl font-black text-gray-900 leading-tight tracking-tight">Bring Nature</h1>
-              <h1 className="text-5xl md:text-6xl font-black text-[#3d6b45] leading-tight tracking-tight">Closer to Home</h1>
+              <h1 className="text-4xl md:text-6xl font-black text-gray-900 leading-tight tracking-tight">Bring Nature</h1>
+              <h1 className="text-4xl md:text-6xl font-black text-[#3d6b45] leading-tight tracking-tight">Closer to Home</h1>
             </div>
 
             <p
@@ -146,9 +146,9 @@ const categories = [
 function ShopByCategory() {
   const [ref, inView] = useInView();
   return (
-    <section ref={ref} className="w-full py-16 px-6 md:px-16 bg-white">
+    <section ref={ref} className="w-full py-10 md:py-16 px-6 md:px-16 bg-white">
       <div className="max-w-7xl mx-auto">
-        <div className={`flex flex-col items-center gap-2 mb-12 transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+        <div className={`flex flex-col items-center gap-2 mb-6 md:mb-12 transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight text-center">Shop by Category</h2>
           <p className="text-sm md:text-base text-gray-400 text-center">Find exactly what your garden needs</p>
         </div>
@@ -204,7 +204,7 @@ function FreshArrivals() {
   }, []);
 
   return (
-    <section ref={ref} className="w-full py-16 px-6 md:px-16 bg-[#f7f9f6]">
+    <section ref={ref} className="w-full py-10 md:py-16 px-6 md:px-16 bg-[#f7f9f6]">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
@@ -290,8 +290,8 @@ const services = [
 function GardeningServices() {
   const [ref, inView] = useInView();
   return (
-    <section ref={ref} className="w-full py-20 px-6 md:px-16 bg-[#1e3a22]">
-      <div className="max-w-7xl mx-auto flex flex-col items-center gap-12">
+    <section ref={ref} className="w-full py-10 md:py-20 px-6 md:px-16 bg-[#1e3a22]">
+      <div className="max-w-7xl mx-auto flex flex-col items-center gap-8 md:gap-12">
         <div className={`text-center flex flex-col gap-3 transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
           <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Professional Gardening Services</h2>
           <p className="text-[#a8c4a0] text-sm md:text-base max-w-lg mx-auto leading-relaxed">
